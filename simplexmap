@@ -78,7 +78,7 @@ my %primaries =
 	text => "Band:",
 	values => \@bands,
 	indent => 1,
-	default => '2m'},
+	default => '2M'},
       "",
       qw_button('justmap','','showit', 'Just Show The Current Map'),
     ],

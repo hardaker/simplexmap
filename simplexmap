@@ -148,6 +148,8 @@ my %primaries =
 	 return "illegal band" if (!exists($bands{qwparam('band')}));
 	 for (my $i = 0; $i <= $#aressigns; $i++) {
 	     if (qwparam("heard_$aressigns[$i]")) {
+		 $delconnection->execute(uc(qwparam('callsign')),
+					 $aressigns[$i], qwparam('band'));
 		 $insconnection->execute(uc(qwparam('callsign')),
 					 $aressigns[$i], qwparam('band'));
 		 $count++;

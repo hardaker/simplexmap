@@ -4,7 +4,18 @@ use GraphViz;
 use DBI;
 use strict;
 
-my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+use Getopt::GUI::Long;
+Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
+
+my %opts = ('d' => 'hammap');
+my $sth;
+
+GetOptions(\%opts,
+	   ["d|db-file", "The database file"],
+	   ["nogui", "Don't launch using a gui"],
+	  ) || die;
+
+my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
 
 my $getconnection = $dbh->prepare("select listener, heard from connections");
 my $row;

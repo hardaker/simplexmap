@@ -80,7 +80,7 @@ my %primaries =
    'second' =>
    { title => 'Who can you hear',
      questions =>
-     [qw_label("ARES Members:","Click on the Callsigns you can hear:"),
+     [qw_label("Callsigns:","Click on the Callsigns you can hear:"),
       {type => 'table',
        indent => 1,
        values => sub {

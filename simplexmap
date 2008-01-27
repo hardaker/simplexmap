@@ -51,6 +51,7 @@ my %primaries =
 		  return 'KI6NQW';
 	      }
 	     ),
+      qw_hidden('no_confirm',1),
       "",
       qw_label("Location:", "(If you know it)"),
       qw_text('lat','Latitude:', indent => 1,

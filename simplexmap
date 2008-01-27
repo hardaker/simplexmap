@@ -88,6 +88,7 @@ my %primaries =
    { title => 'Who can you hear',
      questions =>
      [qw_label("Callsigns:","Click on the Callsigns you can hear:"),
+      qw_label("","(if you can copy a message from them, click otherwise don't)"),
       {type => 'table',
        indent => 1,
        values => sub {
@@ -121,7 +122,9 @@ my %primaries =
       qw_text('other_3',"3:"),
       qw_text('other_4',"4:"),
       qw_text('other_5',"5:"),
-      qw_text('other_6',"6:"),
+      qw_text('other_6',"6:"),,
+      "",
+      qw_label("Need more?","You can hit Next and continue to restart and get more spaces"),
      ],
      actions =>
      sub {

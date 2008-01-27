@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+use GraphViz;
+use DBI;
+use strict;
+
+my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+
+my $getconnection = $dbh->prepare("select listener, heard from connections");
+my $row;
+my %nodes;
+my %edges;
+
+
+my %opts = ('l' => 'dot',
+	    e => .1);
+my $yellow = "#ffff99";                   # not found, not max
+my $red = "#ff8888";                      # not found, max
+my $orange = "#ffbe69";
+my $green = '#99ff99';
+
+my $g = GraphViz->new(node => { fillcolor => $yellow,
+				fontsize => 8,
+				style => 'filled'},
+#		      edge => { minlen => 100 },
+		      no_overlap => 1,
+		      epsilon => $opts{'e'},
+		      layout => $opts{'l'});
+
+$getconnection->execute();
+while ($row = $getconnection->fetchrow_arrayref()) {
+    print "here: $row->[0] $row->[1]\n";
+    add_edge(@$row);
+}
+
+open(O,">./simplexmap.png");
+print O $g->as_png;
+close(O);
+
+sub add_edge {
+    my @labels = @_;
+    if (!exists($nodes{$labels[0]})) {
+	$nodes{$labels[0]} = $g->add_node($labels[0], label => $_[0]);
+    }
+    if ($_[1] && !exists($nodes{$labels[1]})) {
+	$nodes{$labels[1]} = $g->add_node($labels[1], label => $_[1]);
+    }
+
+    # backwards to show who learned from who
+    if ($_[1] && !exists($edges{$labels[1]}{$labels[0]})) {
+	$edges{$labels[1]}{$labels[0]} = 1;
+	$g->add_edge($nodes{$labels[1]}, $nodes{$labels[0]});
+    }
+}

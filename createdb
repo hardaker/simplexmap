@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use DBI;
+use strict;
+
+use Getopt::GUI::Long;
+Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
+
+my %opts = ('d' => 'FCC-data');
+my $sth;
+
+GetOptions(\%opts,
+	   ["c|create-dbs", "Drop and recreate the tables"],
+	   ["nogui", "Don't launch using a gui"],
+	  ) || die;
+
+my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+
+    $dbh->do("create table people
+(
+      callsign                  char(10),
+      lat                       char(64),
+      lon                       char(64)
+)");
+
+    $dbh->do("create table connections
+(
+      listener                  char(10),
+      heard                     char(10),
+      location                  char(64),
+      comment                   char(10),
+      rating                    int
+)");

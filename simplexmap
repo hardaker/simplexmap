@@ -1,0 +1,145 @@
+#!/usr/bin/perl
+
+use DBI;
+use strict;
+use QWizard;
+use QWizard::API;
+use strict;
+
+my @aressigns = qw(K6JAC
+		   K6KN
+		   K6WLS
+		   KE6GCV
+		   KF6HHH
+		   KG6FJL
+		   KG6GNI
+		   KG6SJT
+		   KI4DTN
+		   KI4DTO
+		   KI6ATE
+		   KI6BZR
+		   KI6NQU
+		   KI6NQW
+		   N6KIX
+		   N6KLB
+		   W0EAX
+		   W6KJX
+		   W6VNQ
+		   WA6TQJ
+		   WB6ZEI);
+my %done;
+
+my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+
+my $inspeople =  $dbh->prepare("insert into people (callsign, lat, lon) values(?,?,?)");
+my $delpeople =  $dbh->prepare("delete from people where callsign = ?");
+my $insconnection = $dbh->prepare("insert into connections (listener, heard) values(?,?)");
+my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ?");
+my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ?");
+my $uniqsigns = $dbh->prepare("select distinct(heard) from connections");
+$uniqsigns->execute();
+map { push @aressigns, $_->[0] } @{$uniqsigns->fetchall_arrayref};
+@aressigns = sort @aressigns;
+
+my %primaries =
+  ('first' =>
+   { title => 'About you',
+     questions =>
+     [qw_text('callsign','Your Callsign:',
+	      default => sub {
+		  return uc(qwpref('callsign')) if (qwpref('callsign'));
+		  return 'KI6NQW';
+	      }
+	     ),
+      "",
+      qw_label("Location:", "(If you know it)"),
+      qw_text('lat','Latitude:', indent => 1,
+	      default => sub {
+		  return qwpref('lat') if (qwpref('lat'));
+		  return 'N38';
+	      }),
+      qw_text('lon','Longitude:', indent => 1,
+	      default => sub {
+		  return qwpref('lon') if (qwpref('lon'));
+		  return 'W121';
+	      }),
+    ],
+     post_answers => sub {
+	 foreach my $name (qw(callsign lat lon)) {
+	     qwpref($name, uc(qwparam($name)));
+	 }
+     },
+     actions => sub {
+	 $delpeople->execute(uc(qwparam('callsign')));
+	 $inspeople->execute(qwparams(qw(callsign lat lon)));
+	 return 'MSG: Created entry for :' . qwparam('callsign');
+     }
+   },
+
+   'second' =>
+   { title => 'Who can you hear',
+     questions =>
+     [qw_label("ARES Members:","Click on the Callsigns you can hear:"),
+      {type => 'table',
+       indent => 1,
+       values => sub {
+	   my $row = [];
+	   my @rows;
+	   for (my $i = 0; $i <= $#aressigns; $i++) {
+	       next if ($done{$aressigns[$i]});
+	       $done{$aressigns[$i]} = 1;
+	       if ($i > 0 && $i % 5 == 0) {
+		   push @rows, $row;
+		   $row = [];
+	       }
+	       $getconnection->execute(qwparam('callsign'),
+				       $aressigns[$i]);
+	       my $data = $getconnection->fetchrow_arrayref();
+	       my $default = ($data && $data->[0] ne '') ? 1 : 0;
+	       $getconnection->finish;
+	       push @$row, qw_checkbox("heard_$aressigns[$i]", '', 1, 0,
+				       button_label => $aressigns[$i],
+				       default => $default);
+	   }
+	   push @rows, $row if ($#$row > -1);
+	   return [\@rows];
+       }},
+      "",
+      qw_label("Others:","Enter Other Callsigns you can hear:"),
+      qw_text('other_1',"1:"),
+      qw_text('other_2',"2:"),
+      qw_text('other_3',"3:"),
+      qw_text('other_4',"4:"),
+      qw_text('other_5',"5:"),
+      qw_text('other_6',"6:"),
+     ],
+     actions =>
+     sub {
+	 my $count = 0;
+	 for (my $i = 0; $i <= $#aressigns; $i++) {
+	     if (qwparam("heard_$aressigns[$i]")) {
+		 $insconnection->execute(uc(qwparam('callsign')),
+					 $aressigns[$i]);
+		 $count++;
+	     } else {
+		 $delconnection->execute(uc(qwparam('callsign')),
+					 $aressigns[$i]);
+	     }
+	 }
+
+	 for (my $i = 0; $i <= 6; $i++) {
+	     if (qwparam('other_' . $i)) {
+		 $insconnection->execute(uc(qwparam('callsign')),
+					 qwparam('other_' . $i));
+		 $count++;
+	     }
+	 }
+
+	 return "MSG: marked reception for $count callsigns";
+     }
+   },
+  );
+
+my $qw = new QWizard(primaries => \%primaries);
+$qw->magic('first', 'second');
+

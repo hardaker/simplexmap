@@ -29,17 +29,24 @@ my @aressigns = qw(K6JAC
 		   WB6ZEI);
 my %done;
 
+my %bands;
+my @bands = qw(160M 80M 60M 40M 30M 20M 17M 15M 12M 10M 6M 2M 1.25M 70cm);
+map { $bands{$_} = 1; } @bands;
+
 my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
 
 my $inspeople =  $dbh->prepare("insert into people (callsign, lat, lon) values(?,?,?)");
 my $delpeople =  $dbh->prepare("delete from people where callsign = ?");
-my $insconnection = $dbh->prepare("insert into connections (listener, heard) values(?,?)");
-my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ?");
-my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ?");
+my $insconnection = $dbh->prepare("insert into connections (listener, heard, band) values(?,?,?)");
+my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ? and band = ?");
+my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ? and band = ?");
 my $uniqsigns = $dbh->prepare("select distinct(heard) from connections");
 $uniqsigns->execute();
 map { push @aressigns, $_->[0] } @{$uniqsigns->fetchall_arrayref};
 @aressigns = sort @aressigns;
+
+
 
 my %primaries =
   ('first' =>
@@ -64,6 +71,14 @@ my %primaries =
 		  return qwpref('lon') if (qwpref('lon'));
 		  return 'W121';
 	      }),
+      "",
+      qw_label("Today:", "Define connection information today for:"),
+      { type => 'menu',
+	name => 'band',
+	text => "Band:",
+	values => \@bands,
+	indent => 1,
+	default => '2m'},
       "",
       qw_button('justmap','','showit', 'Just Show The Current Map'),
     ],
@@ -95,6 +110,7 @@ my %primaries =
 	   my $row = [];
 	   my @rows;
 	   my $tc = -1;
+	   return if (!exists($bands{qwparam('band')}));
 	   for (my $i = 0; $i <= $#aressigns; $i++) {
 	       next if ($done{$aressigns[$i]});
 	       $done{$aressigns[$i]} = 1;
@@ -104,7 +120,7 @@ my %primaries =
 		   $row = [];
 	       }
 	       $getconnection->execute(qwparam('callsign'),
-				       $aressigns[$i]);
+				       $aressigns[$i], qwparam('band'));
 	       my $data = $getconnection->fetchrow_arrayref();
 	       my $default = ($data && $data->[0] ne '') ? 1 : 0;
 	       $getconnection->finish;
@@ -129,14 +145,15 @@ my %primaries =
      actions =>
      sub {
 	 my $count = 0;
+	 return "illegal band" if (!exists($bands{qwparam('band')}));
 	 for (my $i = 0; $i <= $#aressigns; $i++) {
 	     if (qwparam("heard_$aressigns[$i]")) {
 		 $insconnection->execute(uc(qwparam('callsign')),
-					 $aressigns[$i]);
+					 $aressigns[$i], qwparam('band'));
 		 $count++;
 	     } else {
 		 $delconnection->execute(uc(qwparam('callsign')),
-					 $aressigns[$i]);
+					 $aressigns[$i], qwparam('band'));
 	     }
 	 }
 

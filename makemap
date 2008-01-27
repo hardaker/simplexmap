@@ -7,24 +7,29 @@ use strict;
 use Getopt::GUI::Long;
 Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
 
-my %opts = ('d' => 'hammap');
+my %opts = ('d' => 'hammap',
+	    'b' => '2M',
+	    'l' => 'dot',
+	    'e' => .1);
 my $sth;
 
 GetOptions(\%opts,
 	   ["d|db-file", "The database file"],
+	   ["b|band", "Band to generate a map for"],
+	   ["l|layout", "Layout style"],
+	   ["e|epislon", "Epsilon value"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
+use Data::Dumper;
 my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
 
-my $getconnection = $dbh->prepare("select listener, heard from connections");
+my $getconnection = $dbh->prepare("select listener, heard from connections where band = ?");
 my $row;
 my %nodes;
 my %edges;
 
 
-my %opts = ('l' => 'dot',
-	    e => .1);
 my $yellow = "#ffff99";                   # not found, not max
 my $red = "#ff8888";                      # not found, max
 my $orange = "#ffbe69";
@@ -38,12 +43,16 @@ my $g = GraphViz->new(node => { fillcolor => $yellow,
 		      epsilon => $opts{'e'},
 		      layout => $opts{'l'});
 
-$getconnection->execute();
+$getconnection->execute($opts{'b'});
+print "mapping $opts{'b'}\n";
+my $count = 0;
 while ($row = $getconnection->fetchrow_arrayref()) {
     print "here: $row->[0] $row->[1]\n";
     add_edge(@$row);
+    $count++;
 }
 
+print "connections $count\n";
 open(O,">./simplexmap.png");
 print O $g->as_png;
 close(O);

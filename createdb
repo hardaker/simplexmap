@@ -23,11 +23,18 @@ my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
       lon                       char(64)
 )");
 
+    $dbh->do("create table groups
+(
+      callsign                  char(10),
+      groupname                 char(64)
+)");
+
     $dbh->do("create table connections
 (
       listener                  char(10),
       heard                     char(10),
       location                  char(64),
       comment                   char(10),
+      band                      char(32),
       rating                    int
 )");

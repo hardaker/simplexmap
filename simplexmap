@@ -86,10 +86,12 @@ my %primaries =
        values => sub {
 	   my $row = [];
 	   my @rows;
+	   my $tc;
 	   for (my $i = 0; $i <= $#aressigns; $i++) {
 	       next if ($done{$aressigns[$i]});
 	       $done{$aressigns[$i]} = 1;
-	       if ($i > 0 && $i % 5 == 0) {
+	       $tc++;
+	       if ($tc > 0 && $tc % 5 == 0) {
 		   push @rows, $row;
 		   $row = [];
 	       }

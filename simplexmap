@@ -86,7 +86,7 @@ my %primaries =
        values => sub {
 	   my $row = [];
 	   my @rows;
-	   my $tc;
+	   my $tc = -1;
 	   for (my $i = 0; $i <= $#aressigns; $i++) {
 	       next if ($done{$aressigns[$i]});
 	       $done{$aressigns[$i]} = 1;

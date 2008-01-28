@@ -88,7 +88,7 @@ my %primaries =
 	linktext => 'Google Earth KML Export File',
       },
       { type => 'link',
-	url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares2.kml&ie=UTF8&z=10&om=0',
+	url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares.kml&ie=UTF8&z=10&om=0',
 	linktext => 'Open the KML file in a browser (Google Maps)',
       },
       { type => 'link',

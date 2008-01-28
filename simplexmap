@@ -51,6 +51,7 @@ map { push @aressigns, $_->[0] } @{$uniqsigns->fetchall_arrayref};
 my %primaries =
   ('first' =>
    { title => 'About you',
+     introduction => "The purpose of this page is to allow a group of people (e.g. YoloARES) to collect data about who can hear who via simplex.  This is very useful informatino to have available when repeaters go down.  To use this, simply enter information about yourself (including geographical coordinates if you know them) and then click on the \"Enter New Connections\" button and selcet the callsigns you can hear (for example during a simplex net).  If you don't know your geographical coordinates, you'll be assigned a random location somewhere between Davis and Woodland.  To see the results of the collected information, use one of the other buttons further below.",
      questions =>
      [qw_text('callsign','Your Callsign:',
 	      default => sub {
@@ -64,12 +65,12 @@ my %primaries =
       qw_text('lat','Latitude:', indent => 1,
 	      default => sub {
 		  return qwpref('lat') if (qwpref('lat'));
-		  return 'N38';
+		  return 'N38 00.000';
 	      }),
       qw_text('lon','Longitude:', indent => 1,
 	      default => sub {
 		  return qwpref('lon') if (qwpref('lon'));
-		  return 'W121';
+		  return 'W121 00.000';
 	      }),
       "",
       qw_label("Today:", "Define connection information today for:"),

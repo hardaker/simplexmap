@@ -81,6 +81,15 @@ my %primaries =
 	default => '2M'},
       "",
       qw_button('justmap','','showit', 'Just Show The Current Map'),
+      { type => 'link',
+	url => '/yoloares.kml',
+	linktext => 'Google Earth KML Export File',
+      },
+      { type => 'link',
+	url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares2.kml&ie=UTF8&z=10&om=0',
+	linktext => 'Open the KML file in a browser (Google Maps)',
+      },
+      qw_button('justmap','','showit', 'Just Show The Current Map'),
     ],
      post_answers => sub {
 	 foreach my $name (qw(callsign lat lon)) {
@@ -94,7 +103,7 @@ my %primaries =
      },
      actions => sub {
 	 $delpeople->execute(uc(qwparam('callsign')));
-	 $inspeople->execute(qwparams(qw(callsign lat lon)));
+	 $inspeople->execute(uc(qwparam('callsign')), qwparams(qw(lat lon)));
 	 return 'MSG: Created entry for :' . qwparam('callsign');
      }
    },

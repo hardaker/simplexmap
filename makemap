@@ -3,6 +3,7 @@
 use GraphViz;
 use DBI;
 use strict;
+use GeoDB::Utils;
 
 use Getopt::GUI::Long;
 Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
@@ -14,17 +15,20 @@ my %opts = ('d' => 'hammap',
 my $sth;
 
 GetOptions(\%opts,
-	   ["d|db-file", "The database file"],
-	   ["b|band", "Band to generate a map for"],
-	   ["l|layout", "Layout style"],
-	   ["e|epislon", "Epsilon value"],
+	   ["d|db-file=s", "The database file"],
+	   ["b|band=s", "Band to generate a map for"],
+	   ["l|layout=s", "Layout style (dot, neato, twopi, circo, fdp)"],
+	   ["e|epislon=s", "Epsilon value"],
+	   ["o|output=s", "Output PNG File"],
+	   ["k|output-kml=s", "Output KML file"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
 use Data::Dumper;
 my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
 
-my $getconnection = $dbh->prepare("select listener, heard from connections where band = ?");
+my $getconnection = $dbh->prepare("select listener, heard from connections where band = ? and listener <> heard");
+my $getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
 my $row;
 my %nodes;
 my %edges;
@@ -43,6 +47,7 @@ my $g = GraphViz->new(node => { fillcolor => $yellow,
 		      epsilon => $opts{'e'},
 		      layout => $opts{'l'});
 
+start_kml();
 $getconnection->execute($opts{'b'});
 print "mapping $opts{'b'}\n";
 my $count = 0;
@@ -51,18 +56,21 @@ while ($row = $getconnection->fetchrow_arrayref()) {
     add_edge(@$row);
     $count++;
 }
+end_kml();
 
 print "connections $count\n";
-open(O,">./simplexmap.png");
+open(O,">$opts{o}");
 print O $g->as_png;
 close(O);
 
 sub add_edge {
     my @labels = @_;
     if (!exists($nodes{$labels[0]})) {
+	export_person($labels[0]);
 	$nodes{$labels[0]} = $g->add_node($labels[0], label => $_[0]);
     }
     if ($_[1] && !exists($nodes{$labels[1]})) {
+	export_person($labels[1]);
 	$nodes{$labels[1]} = $g->add_node($labels[1], label => $_[1]);
     }
 
@@ -70,5 +78,98 @@ sub add_edge {
     if ($_[1] && !exists($edges{$labels[1]}{$labels[0]})) {
 	$edges{$labels[1]}{$labels[0]} = 1;
 	$g->add_edge($nodes{$labels[1]}, $nodes{$labels[0]});
+	export_path($labels[0], $labels[1]);
     }
+}
+
+sub start_kml {
+    open(K,">$opts{k}") if ($opts{'k'});
+    print K '<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://earth.google.com/kml/2.0">
+<Folder>
+  <description>ARES Simplex Map</description>
+  <Folder>
+    <name>ARES Simplex Map</name>
+';
+}
+
+sub end_kml {
+    print K "</Folder>
+</Folder>
+</kml>
+";
+    close(K);
+}
+
+my %doneperson;
+my $unknowncount;
+
+sub export_person {
+    return if (!$opts{'k'});
+    my $person = uc($_[0]);
+    return if (exists($doneperson{$person}));
+    $doneperson{$person} = 1;
+
+    my ($lat, $lon) = get_latlon($person);
+
+    print K "
+  <Placemark>
+    <description>$person</description>
+    <name>$person</name>
+    <styleUrl>#khStyle652</styleUrl>
+    <Point>
+      <altitudeMode>clampToGround</altitudeMode>
+      <coordinates>$lon,$lat,0</coordinates>
+    </Point>
+  </Placemark>
+";
+}
+
+my %donepath;
+sub export_path {
+    return if (!$opts{'k'});
+    my ($one, $two) = (uc($_[0]), uc($_[1]));
+    return if (exists($donepath{$one}{$two}));
+    $donepath{$one}{$two} = 1;
+
+    my ($lat1, $lon1) = get_latlon($one);
+    my ($lat2, $lon2) = get_latlon($two);
+
+    print K "
+  <Placemark>
+    <description>$one to $two</description>
+    <name>$one to $two</name>
+    <styleUrl>#khStyle652</styleUrl>
+    <LineString>
+      <tesselate>1</tesselate>
+      <coordinates>$lon1,$lat1,0
+        $lon2,$lat2,0
+      </coordinates>
+    </LineString>
+  </Placemark>
+";
+}
+
+sub get_latlon {
+    my $person = shift;
+
+    my ($lat, $lon);
+    $getperson->execute(lc($person), $person);
+    while (my $prow = $getperson->fetchrow_arrayref()) {
+	($lat, $lon) = ($prow->[0], $prow->[1]);
+    }
+    my ($plat, $plon) = parse_coords($lat, $lon);
+#     if ($plat == 0 || $plon == 0) {
+# 	$plat = $lat;
+# 	$plon = $lon;
+#     }
+    if ($plat == 0 || $plon == 0 ||
+	($plat == 38 && $plon == -121) ||
+	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
+	($plat, $plon) = parse_coords("N38 38.000", "W121 50.000");
+#	$plat += $unknowncount * 0.002;
+	$plon += $unknowncount * 0.002;
+	$unknowncount++;
+    }
+    return ($plat, $plon);
 }

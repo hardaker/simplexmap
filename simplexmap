@@ -90,6 +90,10 @@ my %primaries =
 	url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares2.kml&ie=UTF8&z=10&om=0',
 	linktext => 'Open the KML file in a browser (Google Maps)',
       },
+      { type => 'link',
+	url => '/yoloares.csv',
+	linktext => 'Comma Separated Value (CSV) List of Connections',
+      },
     ],
      post_answers => sub {
 	 foreach my $name (qw(callsign lat lon)) {

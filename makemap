@@ -21,6 +21,7 @@ GetOptions(\%opts,
 	   ["e|epislon=s", "Epsilon value"],
 	   ["o|output=s", "Output PNG File"],
 	   ["k|output-kml=s", "Output KML file"],
+	   ["c|output-csv=s", "Output CSV file"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
@@ -47,12 +48,17 @@ my $g = GraphViz->new(node => { fillcolor => $yellow,
 		      epsilon => $opts{'e'},
 		      layout => $opts{'l'});
 
+if ($opts{'c'}) {
+    open(C,">$opts{c}");
+    print C "#LISTENER,CANHEAR\n";
+}
 start_kml();
 $getconnection->execute($opts{'b'});
 print "mapping $opts{'b'}\n";
 my $count = 0;
 while ($row = $getconnection->fetchrow_arrayref()) {
-    print "here: $row->[0] $row->[1]\n";
+    print "map: $row->[0] -> $row->[1]\n";
+    print C "$row->[0],$row->[1]\n" if ($opts{'c'});
     add_edge(@$row);
     $count++;
 }
@@ -150,6 +156,7 @@ sub export_path {
 ";
 }
 
+my %previous;
 sub get_latlon {
     my $person = shift;
 
@@ -166,10 +173,16 @@ sub get_latlon {
     if ($plat == 0 || $plon == 0 ||
 	($plat == 38 && $plon == -121) ||
 	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
+
+	if (exists($previous{$person})) {
+	    return ($previous{$person}{'lat'},$previous{$person}{'lon'});
+	}
 	($plat, $plon) = parse_coords("N38 38.000", "W121 50.000");
 #	$plat += $unknowncount * 0.002;
 	$plon += $unknowncount * 0.002;
 	$unknowncount++;
+	$previous{$person}{'lat'} = $plat;
+	$previous{$person}{'lon'} = $plon;
     }
     return ($plat, $plon);
 }

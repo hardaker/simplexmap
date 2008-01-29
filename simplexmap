@@ -132,6 +132,7 @@ my %primaries =
 		  return $lon if ($lon);
 		  return 'W121 00.000';
 	      }),
+      "",
       qw_label("Callsigns:","Click on the Callsigns you can hear:"),
       qw_label("","(if you can copy a message from them, click otherwise don't)"),
       {type => 'table',

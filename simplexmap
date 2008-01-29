@@ -185,7 +185,8 @@ my %primaries =
 	 for (my $i = 0; $i <= 6; $i++) {
 	     if (qwparam('other_' . $i)) {
 		 $insconnection->execute(uc(qwparam('callsign')),
-					 qwparam('other_' . $i));
+					 qwparam('other_' . $i),
+					 qwparam('band'));
 		 $count++;
 	     }
 	 }

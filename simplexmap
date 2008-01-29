@@ -38,6 +38,7 @@ my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
 
 my $inspeople =  $dbh->prepare("insert into people (callsign, lat, lon) values(?,?,?)");
 my $delpeople =  $dbh->prepare("delete from people where callsign = ?");
+my $getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
 my $insconnection = $dbh->prepare("insert into connections (listener, heard, band) values(?,?,?)");
 my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ? and band = ?");
 my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ? and band = ?");
@@ -62,18 +63,6 @@ my %primaries =
       qw_hidden('no_confirm',1),
       "",
       qw_label("Location:", "(If you know it)"),
-      qw_text('lat','Latitude:', indent => 1,
-	      helpdesc => '(exmample formats: N38 42.123 or 38.98765)',
-	      default => sub {
-		  return qwpref('lat') if (qwpref('lat'));
-		  return 'N38 00.000';
-	      }),
-      qw_text('lon','Longitude:', indent => 1,
-	      helpdesc => '(exmample formats: W121 43.123 or -121.98765)',
-	      default => sub {
-		  return qwpref('lon') if (qwpref('lon'));
-		  return 'W121 00.000';
-	      }),
       "",
       qw_label("Today:", "Define connection information today for:"),
       { type => 'menu',
@@ -125,7 +114,25 @@ my %primaries =
    'second' =>
    { title => 'Who can you hear',
      questions =>
-     [qw_label("Callsigns:","Click on the Callsigns you can hear:"),
+     [
+      qw_label("About you:",""),
+      qw_text('lat','Latitude:', indent => 1,
+	      helpdesc => '(exmample formats: N38 42.123 or 38.98765)',
+	      indent => 1,
+	      default => sub {
+		  my ($lat, $lon) = get_latlon(qwparam('callsign'));
+		  return $lat if ($lat);
+		  return 'N38 00.000';
+	      }),
+      qw_text('lon','Longitude:', indent => 1,
+	      helpdesc => '(exmample formats: W121 43.123 or -121.98765)',
+	      indent => 1,
+	      default => sub {
+		  my ($lat, $lon) = get_latlon(qwparam('callsign'));
+		  return $lon if ($lon);
+		  return 'W121 00.000';
+	      }),
+      qw_label("Callsigns:","Click on the Callsigns you can hear:"),
       qw_label("","(if you can copy a message from them, click otherwise don't)"),
       {type => 'table',
        indent => 1,
@@ -210,3 +217,15 @@ my %primaries =
 my $qw = new QWizard(primaries => \%primaries);
 $qw->magic('first');
 
+
+my %previous;
+sub get_latlon {
+    my $person = shift;
+
+    my ($lat, $lon);
+    $getperson->execute(lc($person), $person);
+    my $prow = $getperson->fetchrow_arrayref();
+    ($lat, $lon) = ($prow->[0], $prow->[1]) if ($prow);
+    $getperson->finish();
+    return ($lat, $lon);
+}

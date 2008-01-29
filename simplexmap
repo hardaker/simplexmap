@@ -63,11 +63,13 @@ my %primaries =
       "",
       qw_label("Location:", "(If you know it)"),
       qw_text('lat','Latitude:', indent => 1,
+	      helpdesc => '(exmample formats: N38 42.123 or 38.98765)',
 	      default => sub {
 		  return qwpref('lat') if (qwpref('lat'));
 		  return 'N38 00.000';
 	      }),
       qw_text('lon','Longitude:', indent => 1,
+	      helpdesc => '(exmample formats: W121 43.123 or -121.98765)',
 	      default => sub {
 		  return qwpref('lon') if (qwpref('lon'));
 		  return 'W121 00.000';

@@ -82,7 +82,6 @@ my %primaries =
 	default => '2M'},
       qw_button('enter','Add Data:','bogus','Enter New Connections'),
       "",
-      qw_button('justmap','Export the Data:','showit', 'Show The Current Map'),
       { type => 'link',
 	url => '/simplexmap.png',
 	linktext => 'Simple Connection Diagram Plot',

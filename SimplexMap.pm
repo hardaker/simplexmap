@@ -13,7 +13,7 @@ our %opts;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(init_simplexmap export_kml);
+our @EXPORT = qw(init_simplexmap export_kml export_graphviz);
 
 sub init_simplexmap {
     my ($opts) = @_;
@@ -35,7 +35,7 @@ sub init_simplexmap {
 # GraphViz
 #
 my $g;
-sub make_graphviz {
+sub export_graphviz {
     my $yellow = "#ffff99";                    # not found, not max
     my $red = "#ff8888";                       # not found, max
     my $orange = "#ffbe69";

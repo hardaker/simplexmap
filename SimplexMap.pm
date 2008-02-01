@@ -41,6 +41,7 @@ sub export_graphviz {
     my $orange = "#ffbe69";
     my $green = '#99ff99';
     my $count = 0;
+    my $row;
 
     $g = GraphViz->new(node => { fillcolor => $yellow,
 				 fontsize => 8,
@@ -62,6 +63,7 @@ sub export_graphviz {
     return $count;
 }
 
+my (%nodes, %edges);
 sub add_edge {
     my @labels = @_;
     if (!exists($nodes{$labels[0]})) {

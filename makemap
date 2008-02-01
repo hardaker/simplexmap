@@ -4,6 +4,7 @@ use GraphViz;
 use DBI;
 use strict;
 use GeoDB::Utils;
+use Geo::Coder::US;
 
 use Getopt::GUI::Long;
 Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
@@ -12,7 +13,8 @@ my %opts = ('d' => 'hammap',
 	    'b' => '2M',
 	    'l' => 'dot',
 	    'o' => 'simplexmap.png',
-	    'e' => .1);
+	    'e' => .1,
+	    'g' => '/home/hardaker/lib/simplexmap/tiger/mydb',);
 my $sth;
 
 GetOptions(\%opts,
@@ -23,17 +25,24 @@ GetOptions(\%opts,
 	   ["o|output=s", "Output PNG File"],
 	   ["k|output-kml=s", "Output KML file"],
 	   ["c|output-csv=s", "Output CSV file"],
+	   ["g|geodb=s", "Geographical tiger DB"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
 use Data::Dumper;
 my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
 
+# connection db setup
 my $getconnection = $dbh->prepare("select listener, heard from connections where band = ? and listener <> heard");
 my $getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
 my $row;
 my %nodes;
 my %edges;
+
+# geographical location setup
+GeoDB::Coder::US->set_db($opts{'g'});
+my $dbhsigns = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
+my $getaddrh = $dbh->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
 
 
 my $yellow = "#ffff99";                   # not found, not max
@@ -171,6 +180,22 @@ sub get_latlon {
 # 	$plat = $lat;
 # 	$plon = $lon;
 #     }
+
+    if ($plat == 0 || $plon == 0 ||
+	($plat == 38 && $plon == -121) ||
+	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
+	$getaddrh->execute($person);
+	my $rows = $getaddrh->fetchall_arrayref();
+	my $row = $rows->[$#rows];  # assume the last is the best
+
+	# XXX: po box
+	my @res = Geo::Coder::US->geocode("$row->[2], $row->[3], $row->[4], $row->[5]");
+	if ($res->[0]{'lat'}) {
+	    $plat = $res->[0]{'lat'};
+	    $plon = $res->[0]{'lon'};
+	}
+    }
+
     if ($plat == 0 || $plon == 0 ||
 	($plat == 38 && $plon == -121) ||
 	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {

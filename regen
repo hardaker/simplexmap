@@ -1,0 +1,14 @@
+#!/bin/tcsh
+
+while(1)
+  cp /net/dawn/tmp/hammap . 
+  ./makemap -k yoloares.kml -c yoloares.csv --nogui 
+  ./makemap -o circlemap.png --nogui -l circo
+  cp simplexmap.png /net/dawn/var/www/ham/
+  cp circlemap.png /net/dawn/var/www/ham/
+  cp yoloares.kml /net/dawn/var/www/ham/
+  cp yoloares.csv /net/dawn/var/www/ham/
+  date
+  echo "regen"
+  sleep 600
+end

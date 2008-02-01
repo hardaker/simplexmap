@@ -40,7 +40,7 @@ my %nodes;
 my %edges;
 
 # geographical location setup
-GeoDB::Coder::US->set_db($opts{'g'});
+Geo::Coder::US->set_db($opts{'g'});
 my $dbhsigns = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
 my $getaddrh = $dbh->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
 

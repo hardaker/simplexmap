@@ -186,13 +186,13 @@ sub get_latlon {
 	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
 	$getaddrh->execute($person);
 	my $rows = $getaddrh->fetchall_arrayref();
-	my $row = $rows->[$#rows];  # assume the last is the best
+	my $row = $rows->[$#$rows];  # assume the last is the best
 
 	# XXX: po box
 	my @res = Geo::Coder::US->geocode("$row->[2], $row->[3], $row->[4], $row->[5]");
-	if ($res->[0]{'lat'}) {
-	    $plat = $res->[0]{'lat'};
-	    $plon = $res->[0]{'lon'};
+	if ($res[0]{'lat'}) {
+	    $plat = $res[0]{'lat'};
+	    $plon = $res[0]{'lon'};
 	}
     }
 

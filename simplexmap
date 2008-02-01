@@ -8,6 +8,7 @@ use strict;
 
 my @aressigns = qw(K6JAC
 		   K6KN
+		   K6LAV
 		   K6WLS
 		   KE6GCV
 		   KF6HHH
@@ -18,7 +19,6 @@ my @aressigns = qw(K6JAC
 		   KI4DTO
 		   KI6ATE
 		   KI6BZR
-		   KI6NQU
 		   KI6NQW
 		   N6KIX
 		   N6KLB

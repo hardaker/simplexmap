@@ -15,7 +15,6 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(init_simplexmap export_kml);
 
-
 sub init_simplexmap {
     my ($opts) = @_;
     %opts = %$opts;
@@ -32,6 +31,56 @@ sub init_simplexmap {
     $getaddrh = $dbhsigns->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
 }
 
+########################################
+# GraphViz
+#
+my $g;
+sub make_graphviz {
+    my $yellow = "#ffff99";                    # not found, not max
+    my $red = "#ff8888";                       # not found, max
+    my $orange = "#ffbe69";
+    my $green = '#99ff99';
+    my $count = 0;
+
+    $g = GraphViz->new(node => { fillcolor => $yellow,
+				 fontsize => 8,
+				 style => 'filled'},
+		       #		      edge => { minlen => 100 },
+		       no_overlap => 1,
+		       epsilon => $opts{'e'},
+		       layout => $opts{'l'});
+
+    $getconnection->execute($opts{'b'});
+    while ($row = $getconnection->fetchrow_arrayref()) {
+	add_edge(@$row);
+	$count++;
+    }
+
+    open(O,">$opts{o}");
+    print O $g->as_png;
+    close(O);
+    return $count;
+}
+
+sub add_edge {
+    my @labels = @_;
+    if (!exists($nodes{$labels[0]})) {
+	$nodes{$labels[0]} = $g->add_node($labels[0], label => $_[0]);
+    }
+    if ($_[1] && !exists($nodes{$labels[1]})) {
+	$nodes{$labels[1]} = $g->add_node($labels[1], label => $_[1]);
+    }
+
+    # backwards to show who learned from who
+    if ($_[1] && !exists($edges{$labels[1]}{$labels[0]})) {
+	$edges{$labels[1]}{$labels[0]} = 1;
+	$g->add_edge($nodes{$labels[1]}, $nodes{$labels[0]});
+    }
+}
+
+########################################
+# KML
+#
 sub export_kml {
     my ($file) = @_;
     my $row;

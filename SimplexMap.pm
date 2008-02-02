@@ -13,7 +13,7 @@ our %opts;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(init_simplexmap export_kml export_graphviz);
+our @EXPORT = qw(init_simplexmap export_kml export_graphviz export_csv);
 
 sub init_simplexmap {
     my ($opts) = @_;
@@ -29,6 +29,26 @@ sub init_simplexmap {
     Geo::Coder::US->set_db($opts{'g'});
     $dbhsigns = DBI->connect("DBI:SQLite2:dbname=$opts{H}");
     $getaddrh = $dbhsigns->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
+}
+
+########################################
+# CSV
+#
+my $g;
+sub export_csv {
+    my ($row, $count);
+
+    open(C, ">$opts{'c'}");
+    print C "#LISTENER,CANHEAR,MILES\n";
+
+    $getconnection->execute($opts{'b'});
+    while ($row = $getconnection->fetchrow_arrayref()) {
+	my $dist = calc_distance(get_latlon($row->[0]),get_latlon($row->[1]));
+	print C "$row->[0],$row->[1],$dist\n";
+	$count++;
+    }
+
+    return $count;
 }
 
 ########################################

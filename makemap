@@ -14,7 +14,7 @@ Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
 my %opts = ('d' => 'hammap',
 	    'b' => '2M',
 	    'l' => 'dot',
-	    'o' => 'simplexmap.png',
+#	    'o' => 'simplexmap.png',
 	    'e' => .1,
 	    'g' => '/home/hardaker/lib/simplexmap/tiger/mydb',
 	    'H' => '/home/hambot/hamsigns');

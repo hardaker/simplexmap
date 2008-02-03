@@ -1,6 +1,7 @@
 package SimplexMap;
 
 use GeoDB::Utils;
+use Data::Dumper;
 
 use strict;
 
@@ -192,6 +193,10 @@ my %previous;
 sub get_latlon {
     my $person = shift;
 
+    if (exists($previous{$person})) {
+	return ($previous{$person}{'lat'}, $previous{$person}{'lon'});
+    }
+
     my ($lat, $lon);
     $getperson->execute(lc($person), $person);
     while (my $prow = $getperson->fetchrow_arrayref()) {
@@ -211,10 +216,12 @@ sub get_latlon {
 	my $row = $rows->[$#$rows];  # assume the last is the best
 
 	# XXX: po box
-	my @res = Geo::Coder::US->geocode("$row->[2], $row->[3], $row->[4], $row->[5]");
+	my @res = Geo::Coder::US->geocode("$row->[2], $row->[3], $row->[4]");
 	if ($res[0]{'lat'}) {
 	    $plat = $res[0]{'lat'};
-	    $plon = $res[0]{'lon'};
+	    $plon = $res[0]{'long'};
+	} else {
+	    print "Warning: unknown lat/lon for address for $person\n  ($row->[2], $row->[3], $row->[4], $row->[5])\n";
 	}
     }
 
@@ -222,6 +229,7 @@ sub get_latlon {
 	($plat == 38 && $plon == -121) ||
 	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
 
+	print "Warning: unknown lat/lon for $person ($plat, $plon)\n";
 	if (exists($previous{$person})) {
 	    return ($previous{$person}{'lat'},$previous{$person}{'lon'});
 	}
@@ -229,9 +237,9 @@ sub get_latlon {
 #	$plat += $unknowncount * 0.002;
 	$plon += $unknowncount * 0.002;
 	$unknowncount++;
-	$previous{$person}{'lat'} = $plat;
-	$previous{$person}{'lon'} = $plon;
     }
+    $previous{$person}{'lat'} = $plat;
+    $previous{$person}{'lon'} = $plon;
     return ($plat, $plon);
 }
 

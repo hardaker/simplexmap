@@ -34,6 +34,6 @@ GetOptions(\%opts,
 	  ) || die;
 
 init_simplexmap(\%opts);
-print "kml count: " . export_kml() . "\n" if ($opts{'k'});
-print "graphviz count: " . export_graphviz() . "\n" if ($opts{'o'});
-print "CSV count: " . export_csv() . "\n" if ($opts{'c'});
+print "kml count: " . export_kml($opts{'k'}) . "\n" if ($opts{'k'});
+print "graphviz count: " . export_graphviz($opts{'o'}) . "\n" if ($opts{'o'});
+print "CSV count: " . export_csv($opts{'c'}) . "\n" if ($opts{'c'});

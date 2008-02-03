@@ -2,6 +2,7 @@ package SimplexMap;
 
 use GeoDB::Utils;
 use Data::Dumper;
+use IO::File;
 
 use strict;
 
@@ -36,18 +37,30 @@ sub init_simplexmap {
 # CSV
 #
 my $g;
+
+sub get_fh {
+    my ($fh) = @_;
+    if (ref($fh) eq '') {
+	$fh = new IO::File "> $fh";
+    }
+    return $fh;
+}
+
 sub export_csv {
+    my ($fh) = get_fh(@_);
     my ($row, $count);
 
-    open(C, ">$opts{'c'}");
-    print C "#LISTENER,CANHEAR,MILES\n";
+
+    print $fh "#LISTENER,CANHEAR,MILES\n";
 
     $getconnection->execute($opts{'b'});
     while ($row = $getconnection->fetchrow_arrayref()) {
 	my $dist = calc_distance(get_latlon($row->[0]),get_latlon($row->[1]));
-	print C "$row->[0],$row->[1],$dist\n";
+	print $fh "$row->[0],$row->[1],$dist\n";
 	$count++;
     }
+
+    $fh->close();
 
     return $count;
 }
@@ -64,6 +77,8 @@ sub export_graphviz {
     my $count = 0;
     my $row;
 
+    my $fh = get_fh(@_);
+
     $g = GraphViz->new(node => { fillcolor => $yellow,
 				 fontsize => 8,
 				 style => 'filled'},
@@ -78,9 +93,7 @@ sub export_graphviz {
 	$count++;
     }
 
-    open(O,">$opts{o}");
-    print O $g->as_png;
-    close(O);
+    print $fh $g->as_png;
     return $count;
 }
 
@@ -105,25 +118,25 @@ sub add_edge {
 # KML
 #
 sub export_kml {
-    my ($file) = @_;
+    my ($fh) = get_fh(@_);
     my $row;
     my $count = 0;
 
-    start_kml();
+    start_kml($fh);
     $getconnection->execute($opts{'b'});
     while ($row = $getconnection->fetchrow_arrayref()) {
-	export_person($row->[0]);
-	export_person($row->[1]);
-	export_path($row->[0], $row->[1]);
+	export_person($fh, $row->[0]);
+	export_person($fh, $row->[1]);
+	export_path($fh, $row->[0], $row->[1]);
 	$count++;
     }
-    end_kml();
+    end_kml($fh);
     return $count;
 }
 
 sub start_kml {
-    open(K,">$opts{k}") if ($opts{'k'});
-    print K '<?xml version="1.0" encoding="utf-8"?>
+    my ($fh) = @_;
+    print $fh '<?xml version="1.0" encoding="utf-8"?>
 <kml xmlns="http://earth.google.com/kml/2.0">
 <Folder>
   <description>ARES Simplex Map</description>
@@ -133,19 +146,19 @@ sub start_kml {
 }
 
 sub end_kml {
-    print K "</Folder>
+    my ($fh) = @_;
+    print $fh "</Folder>
 </Folder>
 </kml>
 ";
-    close(K);
 }
 
 my %doneperson;
 my $unknowncount;
 
 sub export_person {
-    return if (!$opts{'k'});
-    my $person = uc($_[0]);
+    my ($fh, $person) = @_;
+    $person = uc($person);
     return if (exists($doneperson{$person}));
     $doneperson{$person} = 1;
 
@@ -166,8 +179,9 @@ sub export_person {
 
 my %donepath;
 sub export_path {
-    return if (!$opts{'k'});
-    my ($one, $two) = (uc($_[0]), uc($_[1]));
+    my ($fh, $one, $two) = @_;
+    $one = uc($one);
+    $two = uc($two);
     return if (exists($donepath{$one}{$two}));
     $donepath{$one}{$two} = 1;
 

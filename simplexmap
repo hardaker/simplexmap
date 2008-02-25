@@ -5,6 +5,15 @@ use strict;
 use QWizard;
 use QWizard::API;
 use strict;
+use lib qw(/home/hardaker/lib/simplexmap);
+use SimplexMap;
+use IO::String;
+
+sub get_opts {
+    return { d => '/home/hardaker/lib/simplexmap/hammap',
+	     H => '/home/hambot/hamsigns',
+	   }
+};
 
 my @aressigns = qw(K6JAC
 		   K6KN
@@ -38,6 +47,7 @@ my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
 
 my $inspeople =  $dbh->prepare("insert into people (callsign, lat, lon) values(?,?,?)");
 my $delpeople =  $dbh->prepare("delete from people where callsign = ?");
+
 my $getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
 my $insconnection = $dbh->prepare("insert into connections (listener, heard, band) values(?,?,?)");
 my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ? and band = ?");
@@ -57,7 +67,6 @@ my %primaries =
      [qw_text('callsign','Your Callsign:',
 	      default => sub {
 		  return uc(qwpref('callsign')) if (qwpref('callsign'));
-		  return 'KI6NQW';
 	      }
 	     ),
       qw_hidden('no_confirm',1),
@@ -73,33 +82,15 @@ my %primaries =
 	default => '2M'},
       qw_button('enter','Add Data:','bogus','Enter New Connections'),
       "",
-      { type => 'link',
-	url => '/simplexmap.png',
-	linktext => 'Simple Connection Diagram Plot',
-      },
-      { type => 'link',
-	url => '/circlemap.png',
-	linktext => 'Circular Connection Diagram Plot',
-      },
-      { type => 'link',
-	url => '/yoloares.kml',
-	linktext => 'Google Earth KML Export File',
-      },
-      { type => 'link',
-	url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares.kml&ie=UTF8&z=10&om=0',
-	linktext => 'Open the KML file in a browser (Google Maps)',
-      },
-      { type => 'link',
-	url => '/yoloares.csv',
-	linktext => 'Comma Separated Value (CSV) List of Connections',
-      },
+      qw_button('export','Export:','bogus','Download The Results',
+		helpdesc => '(download images, google earth kml, etc)'),
     ],
      post_answers => sub {
 	 foreach my $name (qw(callsign lat lon)) {
 	     qwpref($name, uc(qwparam($name)));
 	 }
-	 if (qwparam('justmap')) {
-	     $_[0]->add_todos('showmap');
+	 if (qwparam('export')) {
+	     $_[0]->add_todos('export');
 	 } else {
 	     $_[0]->add_todos('second');
 	 }
@@ -110,6 +101,64 @@ my %primaries =
 	 return 'MSG: Created entry for :' . qwparam('callsign');
      }
    },
+
+   'export' =>
+   {
+    title => "Export Results",
+    questions =>
+    [
+     { type => 'link',
+       url => '/simplexmap.png',
+       linktext => 'Simple Connection Diagram Plot',
+     },
+     { type => 'link',
+       url => '/circlemap.png',
+       linktext => 'Circular Connection Diagram Plot',
+     },
+     qw_button('dokml','','dokml','Export to Google Earth KML'),
+     { type => 'link',
+       url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares.kml&ie=UTF8&z=10&om=0',
+       linktext => 'Open the KML file in a browser (Google Maps)',
+     },
+     { type => 'link',
+       url => '/yoloares.csv',
+       linktext => 'Comma Separated Value (CSV) List of Connections',
+     },
+    ],
+    post_answers => sub {
+	if (qwparam('dokml')) {
+	    $_[0]->add_todos('exportkml');
+	}
+    },
+   },
+
+   'exportkml' =>
+   {
+     title => "Export to KML",
+     questions =>
+     [
+      { type => 'radio',
+	name => 'groupby',
+	text => 'Group connection lines:',
+	default => 'From',
+	labels => ['From','From the caller',
+		   'To','From the listener',
+		  ],
+      },
+      { type => 'filedownload',
+	name => 'getit',
+	text => 'Download',
+	datafn => 
+	sub {
+	    my $str = new IO::String;
+	    init_simplexmap(get_opts());
+	    export_kml($str);
+	    my $ref = $str->string_ref;
+	    $_[0]->print($$ref);
+	}
+      },
+     ],
+    },
 
    'second' =>
    { title => 'Who can you hear',
@@ -215,7 +264,7 @@ my %primaries =
    }
   );
 
-my $qw = new QWizard(primaries => \%primaries);
+my $qw = new QWizard(primaries => \%primaries, title => "Simplex Mapper");
 $qw->magic('first');
 
 

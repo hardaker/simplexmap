@@ -22,15 +22,19 @@ sub init_simplexmap {
     %opts = %$opts;
 
     # connection db setup
-    $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
-    $getconnection = $dbh->prepare("select listener, heard from connections where band = ? and listener <> heard");
-    $getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
-    $dbh = DBI->connect("DBI:SQLite2:dbname=$opts->{d}");
+    if ($opts{'d'} && -f $opts{'d'}) {
+	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
+	$getconnection = $dbh->prepare("select listener, heard from connections where band = ? and listener <> heard");
+	$getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
+    }
 
     # geographical location setup
-    Geo::Coder::US->set_db($opts{'g'});
-    $dbhsigns = DBI->connect("DBI:SQLite2:dbname=$opts{H}");
-    $getaddrh = $dbhsigns->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
+    Geo::Coder::US->set_db($opts{'g'}) if ($opts{'g'});
+
+    if ($opts{'H'} && -f $opts{'H'}) {
+	$dbhsigns = DBI->connect("DBI:SQLite2:dbname=$opts{H}");
+	$getaddrh = $dbhsigns->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
+    }
 }
 
 ########################################
@@ -117,6 +121,7 @@ sub add_edge {
 ########################################
 # KML
 #
+my %paths;
 sub export_kml {
     my ($fh) = get_fh(@_);
     my $row;
@@ -130,6 +135,15 @@ sub export_kml {
 	export_path($fh, $row->[0], $row->[1]);
 	$count++;
     }
+
+    foreach my $person (keys(%paths)) {
+	print $fh "<Folder>
+	  <name>Connections To $person</name>
+  $paths{$person}
+  </Folder>
+";
+    }
+
     end_kml($fh);
     return $count;
 }
@@ -188,7 +202,7 @@ sub export_path {
     my ($lat1, $lon1) = get_latlon($one);
     my ($lat2, $lon2) = get_latlon($two);
 
-    print K "
+    $paths{$one} .= "
   <Placemark>
     <description>$one to $two</description>
     <name>$one to $two</name>
@@ -201,6 +215,9 @@ sub export_path {
     </LineString>
   </Placemark>
 ";
+}
+
+sub export_all_paths {
 }
 
 my %previous;
@@ -222,7 +239,8 @@ sub get_latlon {
 # 	$plon = $lon;
 #     }
 
-    if ($plat == 0 || $plon == 0 ||
+    if ($opts{'g'} &&
+	$plat == 0 || $plon == 0 ||
 	($plat == 38 && $plon == -121) ||
 	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
 	$getaddrh->execute($person);

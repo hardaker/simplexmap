@@ -4,6 +4,7 @@ use DBI;
 use strict;
 use QWizard;
 use QWizard::API;
+use QWizard::Storage::File;
 use strict;
 use lib qw(/home/hardaker/lib/simplexmap);
 use SimplexMap;
@@ -45,10 +46,23 @@ map { $bands{$_} = 1; } @bands;
 my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
 my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
 
-my $inspeople =  $dbh->prepare("insert into people (callsign, lat, lon) values(?,?,?)");
-my $delpeople =  $dbh->prepare("delete from people where callsign = ?");
+my $inspeople =  $dbh->prepare("insert into people (id, callsign) select max(id)+1, ? from people");
 
-my $getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
+my $getgroups = $dbh->prepare("select id, name from groups");
+my $getgroup = $dbh->prepare("select id, name, password, adminpass from groups where id = ?");
+
+my $getevents = $dbh->prepare("select eventid, eventname from events where eventgroup = ?");
+my $getevent = $dbh->prepare("select eventid, eventname from events where eventgroup = ?");
+
+
+my $getgrouppeople = $dbh->prepare("select callsign from people
+                                 left join members on id = groupperson
+                                 where groupid = ?");
+
+my $getperson = $dbh->prepare("select eventpersonlat, eventpersonlon
+                                 from eventmembers
+                            left join people on eventperson = id
+                                where callsign = ?");
 my $insconnection = $dbh->prepare("insert into connections (listener, heard, band) values(?,?,?)");
 my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ? and band = ?");
 my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ? and band = ?");
@@ -60,9 +74,106 @@ map { push @aressigns, $_->[0] } @{$uniqsigns->fetchall_arrayref};
 
 
 my %primaries =
-  ('first' =>
+  ('pickgroup' =>
+   { title => 'Login',
+     introduction => 'You must be a valid member of a group before you can continue',
+     questions =>
+     [get_menu('groupid','Group:',$getgroups),
+#       { type => 'menu',
+# 	name => 'groupid',
+# 	text => 'Group:',
+# 	labels => sub {
+# 	    $getgroups->execute();
+# 	    my @ret;
+# 	    foreach my $row (@{$getgroups->fetchall_arrayref()}) {
+# 		print "here: $row->[0], $row->[1]\n";
+# 		push @ret, $row->[0], $row->[1];
+# 	    }
+# 	    return \@ret;
+# 	},
+# 	default => sub { qwpref('groupid') || '1' },
+#       },
+      { type => 'hidetext',
+	name => 'grouppass',
+	text => 'Group Password:',
+	check_value => sub {
+	    $getgroup->execute(qwparam('groupid'));
+	    my $row = $getgroup->fetchrow_arrayref();
+	    return "no such grouup" if (!$row);
+	    return "Incorrect password"
+	      if ($row->[2] ne qwparam('grouppass')
+		  && $row->[3] ne qwparam('grouppass'));
+	    return 'OK';
+	},
+	default => sub { qwpref('grouppass')},
+      },
+      qw_hidden('no_confirm',1),
+     ],
+     post_answers => sub {
+	 # XXX: check group pass
+	 # XXX: set prefs
+	 qwpref('groupid',qwparam('groupid'));
+	 qwpref('grouppass',qwparam('grouppass'));
+     },
+   },
+
+   'aboutevent' =>
+   { title => 'Event Information',
+     introduction => 'Enter data about the event you are entering data for.  You may return at a future time to enter data about past events if you wish and collect the results.',
+     questions =>
+     [
+      { type => 'dynamic',
+	values => sub {
+	    get_menu('eventid','Event Name:',$getevents, qwparam('groupid'))
+	},
+      },
+      qw_button('export','','bogus','Just Download The Results',
+		helpdesc => '(download images, google earth kml, etc)'),
+      "",
+      qw_label("About You:"),
+      qw_text('callsign','Your Callsign:',
+	      indent => 1,
+	      default => sub {
+		  return uc(qwpref('callsign')) if (qwpref('callsign'));
+	      }
+	     ),
+      qw_text('transmitloc',
+	      "Transmit Location Name:",
+	      default => sub {
+		    return uc(qwpref('transmitloc')) if (qwpref('transmitloc'));
+	      },
+	      indent => 1),
+      qw_text('transmitdet', "Location Details:", indent => 1,
+	      default => sub {
+		    return uc(qwpref('transmitdet')) if (qwpref('transmitdet'));
+	      },),
+      "",
+#       qw_label("Today:", "Define connection information today for:"),
+#       { type => 'menu',
+# 	name => 'band',
+# 	text => "Band:",
+# 	values => \@bands,
+# 	indent => 1,
+# 	default => '2M'},
+      qw_button('enter','Add Data:','bogus','Enter New Connections'),
+      "",
+     ],
+     post_answers => sub {
+	 qwparam('callsign',uc(qwparam('callsign')));
+	 foreach my $name (qw(callsign eventid transmitloc transmitdet)) {
+	     qwpref($name, qwparam($name));
+	 }
+	 if (qwparam('export')) {
+	     $_[0]->add_todos('export');
+	 } else {
+	     $_[0]->add_todos('second');
+	 }
+     },
+   },
+
+   'first' =>
    { title => 'About you',
-     introduction => "The purpose of this page is to allow a group of people (e.g. YoloARES) to collect data about who can hear who via simplex.  This is very useful informatino to have available when repeaters go down.  To use this, simply enter information about yourself (including geographical coordinates if you know them) and then click on the \"Enter New Connections\" button and selcet the callsigns you can hear (for example during a simplex net).  If you don't know your geographical coordinates, you'll be assigned a random location somewhere between Davis and Woodland.  To see the results of the collected information, use one of the other buttons further below.",
+     introduction => "The purpose of this page is to allow a group of people to collect data about who can each other via simplex.  This is very useful informatino to have available on HF frequencies or when repeaters go down.  To use this, simply enter information about yourself (including geographical coordinates if you know them) and then click on the \"Enter New Connections\" button and selcet the callsigns you can hear (for example during a simplex net).  If you don't know your geographical coordinates, you'll be assigned a random location somewhere between Davis and Woodland.  To see the results of the collected information, use one of the other buttons further below.",
      questions =>
      [qw_text('callsign','Your Callsign:',
 	      default => sub {
@@ -96,7 +207,7 @@ my %primaries =
 	 }
      },
      actions => sub {
-	 $delpeople->execute(uc(qwparam('callsign')));
+#	 $delpeople->execute(uc(qwparam('callsign')));
 	 $inspeople->execute(uc(qwparam('callsign')), qwparams(qw(lat lon)));
 	 return 'MSG: Created entry for :' . qwparam('callsign');
      }
@@ -160,27 +271,30 @@ my %primaries =
      ],
     },
 
+################################
+# Collect Collection Information
+#
    'second' =>
    { title => 'Who can you hear',
      questions =>
      [
-      qw_label("About you:",""),
-      qw_text('lat','Latitude:', indent => 1,
-	      helpdesc => '(exmample formats: N38 42.123 or 38.98765)',
-	      indent => 1,
-	      default => sub {
-		  my ($lat, $lon) = get_latlon(qwparam('callsign'));
-		  return $lat if ($lat);
-		  return 'N38 00.000';
-	      }),
-      qw_text('lon','Longitude:', indent => 1,
-	      helpdesc => '(exmample formats: W121 43.123 or -121.98765)',
-	      indent => 1,
-	      default => sub {
-		  my ($lat, $lon) = get_latlon(qwparam('callsign'));
-		  return $lon if ($lon);
-		  return 'W121 00.000';
-	      }),
+#      qw_label("About you:",""),
+#       qw_text('lat','Latitude:', indent => 1,
+# 	      helpdesc => '(exmample formats: N38 42.123 or 38.98765)',
+# 	      indent => 1,
+# 	      default => sub {
+# 		  my ($lat, $lon) = get_latlon(qwparam('callsign'));
+# 		  return $lat if ($lat);
+# 		  return 'N38 00.000';
+# 	      }),
+#       qw_text('lon','Longitude:', indent => 1,
+# 	      helpdesc => '(exmample formats: W121 43.123 or -121.98765)',
+# 	      indent => 1,
+# 	      default => sub {
+# 		  my ($lat, $lon) = get_latlon(qwparam('callsign'));
+# 		  return $lon if ($lon);
+# 		  return 'W121 00.000';
+# 	      }),
       "",
       qw_label("Callsigns:","Click on the Callsigns you can hear:"),
       qw_label("","(if you can copy a message from them, click otherwise don't)"),
@@ -190,22 +304,21 @@ my %primaries =
 	   my $row = [];
 	   my @rows;
 	   my $tc = -1;
-	   return if (!exists($bands{qwparam('band')}));
-	   for (my $i = 0; $i <= $#aressigns; $i++) {
-	       next if ($done{$aressigns[$i]});
-	       $done{$aressigns[$i]} = 1;
+	   my $people = get_many($getgrouppeople, qwparam('groupid'));
+	   for (my $i = 0; $i <= $#$people; $i++) {
+	       next if ($done{$people->[$i][0]});
+	       $done{$people->[$i][0]} = 1;
 	       $tc++;
 	       if ($tc > 0 && $tc % 5 == 0) {
 		   push @rows, $row;
 		   $row = [];
 	       }
-	       $getconnection->execute(qwparam('callsign'),
-				       $aressigns[$i], qwparam('band'));
-	       my $data = $getconnection->fetchrow_arrayref();
-	       my $default = ($data && $data->[0] ne '') ? 1 : 0;
-	       $getconnection->finish;
-	       push @$row, qw_checkbox("heard_$aressigns[$i]", '', 1, 0,
-				       button_label => $aressigns[$i],
+	       my $yes = find_connection(qwparam('eventid'),
+					 qwparam('callsign'),
+					 $people->[$i][0]);
+	       my $default = ($yes) ? 1 : 0;
+	       push @$row, qw_checkbox("heard_$people->[$i][0]", '', 1, 0,
+				       button_label => $people->[$i][0],
 				       default => $default);
 	   }
 	   push @rows, $row if ($#$row > -1);
@@ -213,37 +326,39 @@ my %primaries =
        }},
       "",
       qw_label("Others:","Enter Other Callsigns you can hear:"),
-      qw_text('other_1',"1:"),
-      qw_text('other_2',"2:"),
-      qw_text('other_3',"3:"),
-      qw_text('other_4',"4:"),
-      qw_text('other_5',"5:"),
-      qw_text('other_6',"6:"),,
+      qw_text('other_1',"1:", indent => 1),
+      qw_text('other_2',"2:", indent => 1),
+      qw_text('other_3',"3:", indent => 1),
+      qw_text('other_4',"4:", indent => 1),
+      qw_text('other_5',"5:", indent => 1),
+      qw_text('other_6',"6:", indent => 1),,
       "",
       qw_label("Need more?","You can hit Next and continue to restart and get more spaces"),
      ],
      actions =>
      sub {
 	 my $count = 0;
-	 return "illegal band" if (!exists($bands{qwparam('band')}));
-	 for (my $i = 0; $i <= $#aressigns; $i++) {
-	     if (qwparam("heard_$aressigns[$i]")) {
-		 $delconnection->execute(uc(qwparam('callsign')),
-					 $aressigns[$i], qwparam('band'));
-		 $insconnection->execute(uc(qwparam('callsign')),
-					 $aressigns[$i], qwparam('band'));
+	 my $people = get_many($getgrouppeople, qwparam('groupid'));
+	 print "starting: $#$people\n";
+	 for (my $i = 0; $i <= $#$people; $i++) {
+	     if (qwparam("heard_$people->[$i][0]")) {
+		 print " heard: $people->[$i][0]\n";
+		 make_connection(qwparam('eventid'), qwparam('callsign'),
+				 $people->[$i][0], "", "");
 		 $count++;
 	     } else {
-		 $delconnection->execute(uc(qwparam('callsign')),
-					 $aressigns[$i], qwparam('band'));
+		 print "  nope: $people->[$i][0]\n";
+		 delete_connection(qwparam('eventid'), qwparam('callsign'),
+				 $people->[$i][0], "", "");
 	     }
 	 }
 
 	 for (my $i = 0; $i <= 6; $i++) {
 	     if (qwparam('other_' . $i)) {
-		 $insconnection->execute(uc(qwparam('callsign')),
-					 uc(qwparam('other_' . $i)),
-					 qwparam('band'));
+		 print "making connection: " . qwparam('callsign') . " -> " .
+		   uc(qwparam('other_' . $i)) . "\n";
+		 make_connection(qwparam('eventid'), qwparam('callsign'),
+				 uc(qwparam('other_' . $i)), "", "");
 		 $count++;
 	     }
 	 }
@@ -264,18 +379,193 @@ my %primaries =
    }
   );
 
-my $qw = new QWizard(primaries => \%primaries, title => "Simplex Mapper");
-$qw->magic('first');
-
-
 my %previous;
 sub get_latlon {
     my $person = shift;
 
     my ($lat, $lon);
-    $getperson->execute(lc($person), $person);
+    $getperson->execute($person);
     my $prow = $getperson->fetchrow_arrayref();
     ($lat, $lon) = ($prow->[0], $prow->[1]) if ($prow);
     $getperson->finish();
     return ($lat, $lon);
 }
+
+sub get_menu {
+    my $name = shift;
+    my $text = shift;
+    my $dbsth = shift;
+    my @rest = @_;
+
+    print "arg: $name, $dbsth, $rest[0]\n";
+
+    return
+    { type => 'menu',
+      name => $name,
+      text => $text,
+      labels => sub {
+	  $dbsth->execute(@rest);
+	  my @ret;
+	  foreach my $row (@{$dbsth->fetchall_arrayref()}) {
+	      push @ret, $row->[0], $row->[1];
+	  }
+	  return \@ret;
+      },
+      default => sub { qwpref($name) || '1' },
+    };
+}
+
+########################################
+# PERSON
+print "cak\n";
+my $find_person = $dbh->prepare("select id from people where callsign = ?");
+my $make_person = $dbh->prepare("insert into people (id, callsign)
+                                    select max(id)+1, ? from people");
+sub maybe_create_person {
+    my ($callsign, $eventid) = @_;
+    print "searching: $callsign $find_person $make_person\n";
+    print "       at: " . join(",",caller()) . "\n";
+    my $person = get_one($find_person, $callsign);
+    if (!$person) {
+	$make_person->execute($callsign);
+	$person = get_one($find_person, $callsign);
+	add_person_event($eventid, $callsign);
+	add_person_group(qwparam('groupid'), $callsign);
+    }
+    print "    found: $person->[0]\n";
+    return $person->[0];
+}
+
+########################################
+# GROUP
+my $find_membership = $dbh->prepare("select groupid from members
+                                      where groupperson = ?");
+my $delete_membership = $dbh->prepare("delete from members where
+                                       groupid = ? and groupperson = ?");
+my $add_membership = $dbh->prepare("insert into members(groupid, groupperson)
+                                                 values(?, ?)");
+
+sub add_person_group {
+  my ($groupid, $callsign) = @_;
+  my $person = maybe_create_person($callsign);
+
+  $delete_membership->execute($groupid, $person);
+  $add_membership->execute($groupid, $person);
+
+  print "adding person gid=$groupid, call=$callsign\n";
+}
+
+
+########################################
+# EVENT DETAILS
+#
+my $find_details = $dbh->prepare("select
+      				   	  eventpersonband,
+      				   	  eventpersondetails,
+      				   	  eventpersonlocation,
+      				   	  eventpersonlat,
+      				   	  eventpersonlon
+                                   from eventmembers
+                                  where eventid = ?
+                                    and eventperson = ?
+                                    and eventpersonlocname = ?");
+my $delete_details = $dbh->prepare("delete from eventmembers
+                                    where eventid = ?
+                                      and eventperson = ?
+                                      and eventpersonlocname = ?");
+my $make_details = $dbh->prepare("insert into eventmembers
+      				   	  (eventid,
+                                           eventperson,
+                                           eventpersonlocname,
+      				   	   eventpersondetails,
+      				   	   eventpersonlocation,
+      				   	   eventpersonlat,
+      				   	   eventpersonlon)
+                                  values (?,?,?,?,?,?,?)");
+
+sub add_person_event {
+  my ($eventid, $callsign, $eventpersonlocname,
+      $eventpersondetails, $eventpersonlocation,
+      $eventpersonlat, $eventpersonlon) = @_;
+  return if (!$eventid || !$callsign);
+  my $person = maybe_create_person($callsign);
+  $delete_details->execute($eventid, $person, $eventpersonlocname);
+  $make_details->execute($eventid, $callsign,  $eventpersonlocname || "unknown",
+			 $eventpersondetails || "", $eventpersonlocation || "",
+			 $eventpersonlat || "", $eventpersonlon || "");
+  print "adding person eid=$eventid, call=$callsign\n";
+}
+
+########################################
+# CONNECTIONS
+my $find_connection = $dbh->prepare("select listener, heard,
+                                            comment, rating from connections
+                                      left join people as p1
+                                        on p1.id = listener
+                                      left join people as p2
+                                        on p2.id = heard
+                                     where eventid = ?
+                                       and p1.callsign = ?
+                                       and p2.callsign = ?");
+my $make_connection = $dbh->prepare("insert into connections (eventid,
+                                                              listener, heard,
+                                                              comment, rating)
+                                                 values(?,?,?,?,?)");
+my $delete_connection = $dbh->prepare("delete from connections
+                                        where eventid = ?
+                                          and listener = ?
+                                          and heard = ?");
+sub make_connection {
+    my ($eventid, $call1, $call2, $comment, $rating) = @_;
+    my $person1 = maybe_create_person($call1, $eventid);
+    my $person2 = maybe_create_person($call2, $eventid);
+    delete_connection($eventid, $call1, $call2);
+    $make_connection->execute($eventid, $person1, $person2,
+			      $comment, $rating);
+}
+
+sub find_connection {
+    my ($eventid, $call1, $call2) = @_;
+    print "finding connection: $call1, $call2\n";
+    my $row = get_one($find_connection, $eventid, $call1, $call2);
+    print "finding connection: $row\n";
+    return $row;
+}
+
+sub delete_connection {
+    my ($eventid, $call1, $call2) = @_;
+    my $person1 = maybe_create_person($call1);
+    my $person2 = maybe_create_person($call2);
+    $delete_connection->execute($eventid, $person1, $person2);
+}
+
+
+########################################
+# SQL HELP
+sub get_one {
+    my $sth = shift;
+    print "here: " . join(",",caller()) . "\n";
+    $sth->execute(@_);
+    my $row = $sth->fetchrow_arrayref();
+    $sth->finish();
+    return $row;
+}
+
+sub get_many {
+    my $sth = shift;
+    $sth->execute(@_);
+    my $rows = $sth->fetchall_arrayref();
+    $sth->finish();
+    return $rows;
+}
+
+########################################
+# MAIN
+
+my $qw = new QWizard(primaries => \%primaries, title => "Simplex Mapper");
+if (ref($qw->{'generator'}) !~ /HTML/) {
+    $qw->{'generator'}{'prefstore'} =
+      new QWizard::Storage::File(file => $ENV{'HOME'} . "/.simplexmaprc");
+    $qw->{'generator'}{'prefstore'}->load_data();
+}
+$qw->magic('pickgroup', 'aboutevent');

@@ -14,27 +14,64 @@ GetOptions(\%opts,
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
+if ($opts{'c'}) {
+    unlink("hammap");
+}
+
 my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
 
     $dbh->do("create table people
 (
-      callsign                  char(10),
-      lat                       char(64),
-      lon                       char(64)
+      id                        int,
+      callsign                  char(10)
 )");
+
+    $dbh->do("insert into people values(1,'KI6NQW')");
 
     $dbh->do("create table groups
 (
-      callsign                  char(10),
-      groupname                 char(64)
+      id                        int,
+      name                      char(64),
+      password                  char(64),
+      adminpass                 char(64)
+)");
+
+    $dbh->do("insert into groups values(1,'Yolo ARES','generalpassword','adminpassword')");
+
+    $dbh->do("create table members
+(
+      groupid                   int,
+      groupperson               int
+)");
+
+    $dbh->do("create table events
+(
+      eventid                   int,
+      eventgroup                int,
+      eventname                 varchar(64),
+      eventband                 varchar(64),
+      eventdate                 varchar(64),
+      eventstart                 varchar(64)
+)");
+
+$dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM')");
+
+    $dbh->do("create table eventmembers
+(
+      eventid                   int,
+      eventperson               int,
+      eventpersonlocname        varchar(64),
+      eventpersondetails        varchar(4096),
+      eventpersonlocation       varchar(4096),
+      eventpersonlat            char(64),
+      eventpersonlon            char(64)
 )");
 
     $dbh->do("create table connections
 (
-      listener                  char(10),
-      heard                     char(10),
-      location                  char(64),
+      eventid                   int,
+      listener                  int,
+      heard                     int,
       comment                   char(10),
-      band                      char(32),
       rating                    int
 )");

@@ -51,20 +51,22 @@ my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
       eventname                 varchar(64),
       eventband                 varchar(64),
       eventdate                 varchar(64),
-      eventstart                 varchar(64)
+      eventstart                varchar(64),
+      eventdescription          varchar(4096)
 )");
 
-$dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM')");
+$dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '')");
 
     $dbh->do("create table eventmembers
 (
       eventid                   int,
       eventperson               int,
-      eventpersonlocname        varchar(64),
       eventpersondetails        varchar(4096),
-      eventpersonlocation       varchar(4096),
-      eventpersonlat            char(64),
-      eventpersonlon            char(64)
+      eventpersonlocname        varchar(64),
+      eventpersonloctype        varchar(64),
+      eventpersonloclat         varchar(4096),
+      eventpersonloclon         varchar(4096),
+      eventpersonlocaddress     varchar(4096)
 )");
 
     $dbh->do("create table connections

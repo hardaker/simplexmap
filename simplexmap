@@ -16,27 +16,6 @@ sub get_opts {
 	   }
 };
 
-my @aressigns = qw(K6JAC
-		   K6KN
-		   K6LAV
-		   K6WLS
-		   KE6GCV
-		   KF6HHH
-		   KG6FJL
-		   KG6GNI
-		   KG6SJT
-		   KI4DTN
-		   KI4DTO
-		   KI6ATE
-		   KI6BZR
-		   KI6NQW
-		   N6KIX
-		   N6KLB
-		   W0EAX
-		   W6KJX
-		   W6VNQ
-		   WA6TQJ
-		   WB6ZEI);
 my %done;
 
 my %bands;
@@ -45,6 +24,8 @@ map { $bands{$_} = 1; } @bands;
 
 my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
 my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
+$dbh2 = DBI->connect("DBI:SQLite2:dbname=/users/hardaker/docs/ham/fcc/hamsigns")
+  if (!$dbh2);
 
 my $inspeople =  $dbh->prepare("insert into people (id, callsign) select max(id)+1, ? from people");
 
@@ -59,6 +40,12 @@ my $getgrouppeople = $dbh->prepare("select callsign from people
                                  left join members on id = groupperson
                                  where groupid = ?");
 
+my $getgrouppeoplesorted =
+  $dbh->prepare("select callsign from people
+              left join members on id = groupperson
+                  where groupid = ?
+               order by callsign");
+
 my $getperson = $dbh->prepare("select eventpersonlat, eventpersonlon
                                  from eventmembers
                             left join people on eventperson = id
@@ -66,12 +53,29 @@ my $getperson = $dbh->prepare("select eventpersonlat, eventpersonlon
 my $insconnection = $dbh->prepare("insert into connections (listener, heard, band) values(?,?,?)");
 my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ? and band = ?");
 my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ? and band = ?");
-my $uniqsigns = $dbh->prepare("select distinct(heard) from connections");
-$uniqsigns->execute();
-map { push @aressigns, $_->[0] } @{$uniqsigns->fetchall_arrayref};
-@aressigns = sort @aressigns;
 
+my $getlocations = $dbh->prepare("select eventpersonlocname, eventpersonloctype,
+                                         eventpersonloclat, eventpersonloclon,
+                                         eventpersonlocaddress
+                               from eventmembers
+                               left join people on id = eventperson
+                                   where eventid = ?
+                                     and callsign = ?");
+my $getlocation  = $dbh->prepare("select eventpersonlocname, eventpersonloctype,
+                                         eventpersonloclat, eventpersonloclon,
+                                         eventpersonlocaddress
+                               from eventmembers
+                               left join people on id = eventperson
+                                   where eventid = ?
+                                     and eventpersonlocname = ?
+                                     and callsign = ?");
 
+my ($calldetails, $hdh, $vdh);
+if ($dbh2) {
+    $calldetails = $dbh2->prepare("select first_name, street_address, city, state, zip_code, frn, applicant_type_code, unique_system_identifier from PUBACC_EN where unique_system_identifier = ?");
+    $hdh = $dbh2->prepare("select license_status, grant_date, expired_date, unique_system_identifier from PUBACC_HD where call_sign = ? order by unique_system_identifier desc limit 1");
+    $vdh = $dbh2->prepare("select unique_system_identifier from PUBACC_VC where callsign_requested = ? order by unique_system_identifier desc limit 1");
+}
 
 my %primaries =
   ('pickgroup' =>
@@ -107,6 +111,14 @@ my %primaries =
 	},
 	default => sub { qwpref('grouppass')},
       },
+      "",
+      qw_label("About You:"),
+      qw_text('callsign','Your Callsign:',
+	      indent => 1,
+	      default => sub {
+		  return uc(qwpref('callsign')) if (qwpref('callsign'));
+	      }
+	     ),
       qw_hidden('no_confirm',1),
      ],
      post_answers => sub {
@@ -127,26 +139,54 @@ my %primaries =
 	    get_menu('eventid','Event Name:',$getevents, qwparam('groupid'))
 	},
       },
-      qw_button('export','','bogus','Just Download The Results',
-		helpdesc => '(download images, google earth kml, etc)'),
       "",
-      qw_label("About You:"),
-      qw_text('callsign','Your Callsign:',
-	      indent => 1,
-	      default => sub {
-		  return uc(qwpref('callsign')) if (qwpref('callsign'));
-	      }
-	     ),
-      qw_text('transmitloc',
-	      "Transmit Location Name:",
-	      default => sub {
-		    return uc(qwpref('transmitloc')) if (qwpref('transmitloc'));
-	      },
-	      indent => 1),
-      qw_text('transmitdet', "Location Details:", indent => 1,
-	      default => sub {
-		    return uc(qwpref('transmitdet')) if (qwpref('transmitdet'));
-	      },),
+      {name => 'transmitloc',
+       text => "Transmit Location:",
+       refresh_on_change => 1,
+       type => 'menu',
+       values => sub {
+	   my $rows = get_many($getlocations,
+			       qwparam('eventid'), qwparam('callsign'));
+	   my @values = qw(Home);
+	   foreach my $row (@$rows) {
+	       push @values, $row->[0];
+	   }
+	   push @values, 'Create New';
+	   return \@values;
+       },
+       default => 'Home',
+      },
+      { name => 'transmitdetails',
+	text => "Details:",
+	indent => 1,
+	type => 'label',
+	doif => sub {
+	    return 1 if (!qwparam('transmitloc') ||
+			 qwparam('transmitloc') eq 'Home');
+	    my $rows = get_one($getlocation, qwparam('eventid'),
+			       qwparam('transmitloc') || 'Home',
+			       qwparam('callsign'));
+	    if ($rows) {
+		return 1;
+	    }
+	    return 0
+	},
+	values => sub {
+	    my $rows = get_one($getlocation, qwparam('eventid'),
+			       qwparam('transmitloc') || 'Home',
+			       qwparam('callsign'));
+	    if ($rows) {
+		if ($rows->[1] eq 'Address') {
+		    return "Address: $rows->[4]";
+		} elsif ($rows->[1] eq 'Coordinates') {
+		    return "Coordinates: $rows->[2], $rows->[3]";
+		}
+	    } else {
+		return "Address: From FFC DB";
+	    }
+	    return "Unknown type; this is a bug.   Contact KI6NQW.";
+	},
+      },
       "",
 #       qw_label("Today:", "Define connection information today for:"),
 #       { type => 'menu',
@@ -155,7 +195,16 @@ my %primaries =
 # 	values => \@bands,
 # 	indent => 1,
 # 	default => '2M'},
-      qw_button('enter','Add Data:','bogus','Enter New Connections'),
+      qw_button('enter','Data:','bogus','Enter New Connections'),
+      qw_button('export','','bogus','Just Download The Results',
+		helpdesc => '(download images, google earth kml, etc)'),
+      "",
+      qw_button('addmembers','Group Administration:','bogus',
+		'Enter New Group Members',
+		doif => sub { return 1; }),
+      qw_button('addevent','','bogus',
+		'Create a new event',
+		doif => sub { return 1; }),
       "",
      ],
      post_answers => sub {
@@ -165,12 +214,73 @@ my %primaries =
 	 }
 	 if (qwparam('export')) {
 	     $_[0]->add_todos('export');
+	 } elsif (qwparam('addmembers')) {
+	     $_[0]->add_todos('addmembers');
+	 } elsif (qwparam('addevent')) {
+	     $_[0]->add_todos('addevent');
 	 } else {
 	     $_[0]->add_todos('second');
 	 }
      },
    },
 
+   #########################################
+   # ADD A NEW EVENT
+   #
+   'addevent' =>
+   { title => 'Add A New Event',
+     questions =>
+     [qw_text('eventname','Name:', check_value => \&qw_required_field),
+      qw_menu('eventband','Band:', \@bands, default => '2M'),
+      qw_text('eventdate','Date:',helpdesc => '(optional)'),
+      qw_text('eventtime','Time:',helpdesc => '(optional)'),
+      qw_textbox('eventdescr','Event Description:')
+     ],
+     actions => 
+     [
+      sub {
+	  my $newevent = $dbh->prepare("insert into events
+                                            (eventid, eventgroup, eventname,
+                                             eventband, eventdate, eventstart,
+                                             eventdescription)
+                                        select max(eventid)+1, ?, ?, ?, ?, ?, ?
+                                          from events");
+	  $newevent->execute(qwparams('groupid','eventname','eventband',
+				      'eventdate','eventtime','eventdescr')),
+	  return "OK";
+      }],
+   },
+
+   #########################################
+   # ADD GROUP MEMBERS
+   #
+   'addmembers' =>
+   { title => 'Add Group Members',
+     introduction => 'To pre-populate the connection database with group members so every member does not need to hand type a lot of callsigns, enter callsigns here:',
+     questions =>
+     [qw_textbox('callsigns','Callsigns:')
+     ],
+     actions => 
+     [
+      sub {
+	  my @callsigns;
+	  my $groupid = qwparam('groupid');
+	  my $errcount = 0;
+	  foreach my $callsign (split(/\s+/,qwparam('callsigns'))) {
+	      if ($callsign =~ /^[a-zA-Z0-9]+$/) { # letters/numbers only
+		  add_person_group($groupid, uc($callsign))
+	      } else {
+		  $errcount++;
+	      }
+	  };
+	  return "Dropped $errcount illegal callsigns" if ($errcount);
+	  return "OK";
+      }],
+   },
+
+   ########################################
+   # first screen
+   #
    'first' =>
    { title => 'About you',
      introduction => "The purpose of this page is to allow a group of people to collect data about who can each other via simplex.  This is very useful informatino to have available on HF frequencies or when repeaters go down.  To use this, simply enter information about yourself (including geographical coordinates if you know them) and then click on the \"Enter New Connections\" button and selcet the callsigns you can hear (for example during a simplex net).  If you don't know your geographical coordinates, you'll be assigned a random location somewhere between Davis and Woodland.  To see the results of the collected information, use one of the other buttons further below.",
@@ -295,43 +405,89 @@ my %primaries =
 # 		  return $lon if ($lon);
 # 		  return 'W121 00.000';
 # 	      }),
+      qw_paragraph("Event:",sub {
+		       get_one_value_sql("select eventname from events
+                                           where eventid = ?",
+					 qwparam('eventid'));
+		   }),
+      qw_paragraph("Description:",sub {
+		       get_one_value_sql("select eventdescription from events
+                                           where eventid = ?",
+					 qwparam('eventid'));
+		   }, indent => 1),
+      qw_label("Date:",sub {
+		       get_one_value_sql("select eventdate from events
+                                           where eventid = ?",
+					 qwparam('eventid'));
+		   }, indent => 1),
+      qw_label("Time:",sub {
+		       get_one_value_sql("select eventstart from events
+                                           where eventid = ?",
+					 qwparam('eventid'));
+		   }, indent => 1),
+      qw_label("Band:",sub {
+		       get_one_value_sql("select eventband from events
+                                           where eventid = ?",
+					 qwparam('eventid'));
+		   }, indent => 1),
       "",
       qw_label("Callsigns:","Click on the Callsigns you can hear:"),
       qw_label("","(if you can copy a message from them, click otherwise don't)"),
       {type => 'table',
        indent => 1,
        values => sub {
-	   my $row = [];
+	   my $checkboxes = [];
+	   my $peoplerows = [];
+	   my $fivenine = [];
 	   my @rows;
 	   my $tc = -1;
-	   my $people = get_many($getgrouppeople, qwparam('groupid'));
+	   my $people = get_many($getgrouppeoplesorted, qwparam('groupid'));
 	   for (my $i = 0; $i <= $#$people; $i++) {
 	       next if ($done{$people->[$i][0]});
 	       $done{$people->[$i][0]} = 1;
 	       $tc++;
 	       if ($tc > 0 && $tc % 5 == 0) {
-		   push @rows, $row;
-		   $row = [];
+		   push @rows, $checkboxes, $peoplerows, $fivenine;
+		   $checkboxes = [];
+		   $fivenine = [];
+		   $peoplerows = [];
 	       }
 	       my $yes = find_connection(qwparam('eventid'),
 					 qwparam('callsign'),
 					 $people->[$i][0]);
 	       my $default = ($yes) ? 1 : 0;
-	       push @$row, qw_checkbox("heard_$people->[$i][0]", '', 1, 0,
-				       button_label => $people->[$i][0],
-				       default => $default);
+	       push @$checkboxes,
+		 qw_checkbox("heard_$people->[$i][0]", '', 1, 0,
+			     button_label => $people->[$i][0],
+			     default => $default);
+ 	       push @$fivenine, qw_text("fivenine_$people->[$i][0]", '',
+ 					default => ($yes ? $yes->[3] : '59'));
+	       my $fcc = get_fcc_data($people->[$i][0]);
+	       push @$peoplerows, qw_label('',$fcc->[0] || "");
 	   }
-	   push @rows, $row if ($#$row > -1);
+	   if ($#$checkboxes > -1) {
+	       push @rows, $checkboxes;
+	       push @rows, $peoplerows;
+	       push @rows, $fivenine;
+	   }
 	   return [\@rows];
        }},
       "",
       qw_label("Others:","Enter Other Callsigns you can hear:"),
-      qw_text('other_1',"1:", indent => 1),
-      qw_text('other_2',"2:", indent => 1),
-      qw_text('other_3',"3:", indent => 1),
-      qw_text('other_4',"4:", indent => 1),
-      qw_text('other_5',"5:", indent => 1),
-      qw_text('other_6',"6:", indent => 1),,
+      { type => 'table',
+	values => sub {
+	    my $table;
+	    for (my $i = 1; $i <= 10; $i++) {
+		push @$table,
+		  [
+		   qw_label('',"$i:"),
+		   qw_text('other_' . $i),
+		   qw_text('fivenine_' . $i,'',default => '59'),
+		   ];
+	    }
+	    return [$table];
+	}
+      },
       "",
       qw_label("Need more?","You can hit Next and continue to restart and get more spaces"),
      ],
@@ -344,12 +500,13 @@ my %primaries =
 	     if (qwparam("heard_$people->[$i][0]")) {
 		 print " heard: $people->[$i][0]\n";
 		 make_connection(qwparam('eventid'), qwparam('callsign'),
-				 $people->[$i][0], "", "");
+				 $people->[$i][0], "",
+				 qwparam("fivenine_$people->[$i][0]"));
 		 $count++;
 	     } else {
 		 print "  nope: $people->[$i][0]\n";
 		 delete_connection(qwparam('eventid'), qwparam('callsign'),
-				 $people->[$i][0], "", "");
+				   $people->[$i][0]);
 	     }
 	 }
 
@@ -399,6 +556,8 @@ sub get_menu {
 
     print "arg: $name, $dbsth, $rest[0]\n";
 
+    my $max = 1;
+
     return
     { type => 'menu',
       name => $name,
@@ -406,12 +565,18 @@ sub get_menu {
       labels => sub {
 	  $dbsth->execute(@rest);
 	  my @ret;
+	  my $max = 1;
 	  foreach my $row (@{$dbsth->fetchall_arrayref()}) {
 	      push @ret, $row->[0], $row->[1];
+	      $max = $row->[0] if ($row->[0] > $max);
 	  }
+	  qwparam('xxmax',$max);
 	  return \@ret;
       },
-      default => sub { qwpref($name) || '1' },
+      default => sub { get_one_value_sql("select max(eventid) from events
+                                           where eventgroup = ?",
+					 qwparam('groupid'));
+		       },
     };
 }
 
@@ -435,6 +600,30 @@ sub maybe_create_person {
     print "    found: $person->[0]\n";
     return $person->[0];
 }
+
+########################################
+# FCC Data
+#
+sub get_fcc_data {
+    return if (!$dbh2);
+    my $callsign = shift;
+    my @signs;
+
+    use Data::Dumper;;
+    my $rows = get_many($hdh, $callsign);
+    print Dumper($rows);
+    push @signs, $rows->[$#$rows][3] if ($rows != -1);
+    $rows = get_many($vdh, $callsign);
+    print Dumper($rows);
+    push @signs, $rows->[$#$rows][0] if ($#$rows != -1);
+
+    return [] if ($#signs == -1);
+
+    my $row = get_one($calldetails, $signs[$#signs]);
+    print "grabbed: $callsign -> $row->[0]\n";
+    return $row;
+}
+
 
 ########################################
 # GROUP
@@ -551,8 +740,20 @@ sub get_one {
     return $row;
 }
 
+sub get_one_value {
+    my $row = get_one(@_);
+    return $row->[0];
+}
+
+sub get_one_value_sql {
+    my $sql = shift;
+    my $sqlh = $dbh->prepare_cached($sql);
+    return get_one_value($sqlh, @_);
+}
+
 sub get_many {
     my $sth = shift;
+    print "here: " . join(",",caller()) . "\n";
     $sth->execute(@_);
     my $rows = $sth->fetchall_arrayref();
     $sth->finish();

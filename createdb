@@ -66,7 +66,10 @@ $dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '
       eventpersonloctype        varchar(64),
       eventpersonloclat         varchar(4096),
       eventpersonloclon         varchar(4096),
-      eventpersonlocaddress     varchar(4096)
+      eventpersonlocaddress     varchar(4096),
+      eventpersonloccity        varchar(4096),
+      eventpersonlocstate       varchar(4096),
+      eventpersonloczip         int
 )");
 
     $dbh->do("create table connections

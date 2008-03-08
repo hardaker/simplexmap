@@ -160,6 +160,7 @@ sub export_kml {
 
     start_kml($fh);
     $getconnection->execute($opts{'b'});
+    print $fh "  <Folder>\n    <name>Stations</name>\n";
     while ($row = $getconnection->fetchrow_arrayref()) {
 	print "kml: $row->[0] $row->[1]\n";
 	export_person($fh, $row->[0]);
@@ -167,6 +168,8 @@ sub export_kml {
 	export_path($fh, $row->[0], $row->[1]);
 	$count++;
     }
+    print $fh "  </Folder>\n  <Folder>    <name>Connections</name>
+\n";
 
     foreach my $person (keys(%paths)) {
 	print $fh "<Folder>
@@ -185,9 +188,7 @@ sub start_kml {
     print $fh '<?xml version="1.0" encoding="utf-8"?>
 <kml xmlns="http://earth.google.com/kml/2.0">
 <Folder>
-  <description>ARES Simplex Map</description>
-  <Folder>
-    <name>ARES Simplex Map</name>
+  <name>Connection Map</name>
 ';
 }
 
@@ -302,7 +303,7 @@ sub get_latlon {
 	    my @res = Geo::Coder::US->geocode($prow->[3]);
 	    if ($res[0]{'lat'}) {
 		$previous{$person}{'lat'} = $res[0]{'lat'};
-		$previous{$person}{'lon'} = $res[0]{'lon'};
+		$previous{$person}{'lon'} = $res[0]{'long'};
 		return ($res[0]{'lat'}, $res[0]{'long'});
 	    } else {
 		print "Warning: unknown lat/lon for address for $person\n   $prow->[3]\n";

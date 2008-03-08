@@ -3,6 +3,8 @@ package SimplexMap;
 use GeoDB::Utils;
 use Data::Dumper;
 use IO::File;
+use Data::Dumper;
+use Geo::Coder::US;
 
 use strict;
 
@@ -12,20 +14,42 @@ our $getperson;
 our $dbhsigns;
 our $getaddrh;
 our %opts;
+our $calldetails;
+our $hdh;
+our $vdh;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(init_simplexmap export_kml export_graphviz export_csv);
+our @EXPORT = qw(init_simplexmap export_kml export_graphviz export_csv
+		 get_one get_many get_one_value);
 
 sub init_simplexmap {
     my ($opts) = @_;
     %opts = %$opts;
 
+    print Dumper(\%opts);
+    
     # connection db setup
     if ($opts{'d'} && -f $opts{'d'}) {
 	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
-	$getconnection = $dbh->prepare("select listener, heard from connections where band = ? and listener <> heard");
-	$getperson = $dbh->prepare("select lat, lon from people where callsign = ? or callsign = ?");
+	$getconnection =
+	  $dbh->prepare("select receiver.callsign, sender.callsign,
+                                comment, rating from connections
+                      left join people as receiver
+                             on receiver.id = listener
+                      left join people as sender
+                             on sender.id = heard
+                          where eventid = ?
+                            and listener <> heard");
+	$getperson =
+	  $dbh->prepare("select eventpersonloctype,
+                                eventpersonloclat, eventpersonloclon,
+                                eventpersonlocaddress, eventpersondetails
+                           from eventmembers
+                      left join people
+                             on eventperson = id
+                          where callsign = ?
+                            and eventid = ?");
     }
 
     # geographical location setup
@@ -33,7 +57,14 @@ sub init_simplexmap {
 
     if ($opts{'H'} && -f $opts{'H'}) {
 	$dbhsigns = DBI->connect("DBI:SQLite2:dbname=$opts{H}");
-	$getaddrh = $dbhsigns->prepare("select first_name, po_box, street_address, city, state, zip_code from PUBACC_EN where call_sign = ?");
+	$getaddrh =
+	  $dbhsigns->prepare("select first_name, po_box, street_address, 
+                                     city, state, zip_code
+                                from PUBACC_EN
+                               where call_sign = ?");
+	$calldetails = $dbhsigns->prepare("select first_name, street_address, city, state, zip_code, frn, applicant_type_code, unique_system_identifier from PUBACC_EN where unique_system_identifier = ?");
+	$hdh = $dbhsigns->prepare("select license_status, grant_date, expired_date, unique_system_identifier from PUBACC_HD where call_sign = ? order by unique_system_identifier desc limit 1");
+	$vdh = $dbhsigns->prepare("select unique_system_identifier from PUBACC_VC where callsign_requested = ? order by unique_system_identifier desc limit 1");
     }
 }
 
@@ -130,6 +161,7 @@ sub export_kml {
     start_kml($fh);
     $getconnection->execute($opts{'b'});
     while ($row = $getconnection->fetchrow_arrayref()) {
+	print "kml: $row->[0] $row->[1]\n";
 	export_person($fh, $row->[0]);
 	export_person($fh, $row->[1]);
 	export_path($fh, $row->[0], $row->[1]);
@@ -178,7 +210,7 @@ sub export_person {
 
     my ($lat, $lon) = get_latlon($person);
 
-    print K "
+    print $fh "
   <Placemark>
     <description>$person</description>
     <name>$person</name>
@@ -229,50 +261,118 @@ sub get_latlon {
     }
 
     my ($lat, $lon);
-    $getperson->execute(lc($person), $person);
-    while (my $prow = $getperson->fetchrow_arrayref()) {
+    $getperson->execute($opts{'b'}, uc($person));
+
+    my $prow = $getperson->fetchrow_arrayref();
+    my ($plat, $plon);
+
+    if (!$prow && $getaddrh) {
+	# doesn't exist in the DB, force to address untill someone
+	# fills in more appropriate info.
+	print "No entry for $person\n";
+	$prow->[0] = 'Address';
+	
+	# pull the address from the FCC database
+	my $dat = get_fcc_data($person);
+	$prow->[3] = "$dat->[1], $dat->[2], $dat->[3], $dat->[4]";
+	print "  at: $prow->[3]\n";
+    }
+
+    #
+    # lat/lon directly specified
+    #
+    if ($prow->[0] eq 'Coordinates') {
 	($lat, $lon) = ($prow->[0], $prow->[1]);
-    }
-    my ($plat, $plon) = parse_coords($lat, $lon);
-#     if ($plat == 0 || $plon == 0) {
-# 	$plat = $lat;
-# 	$plon = $lon;
-#     }
-
-    if ($opts{'g'} &&
-	$plat == 0 || $plon == 0 ||
-	($plat == 38 && $plon == -121) ||
-	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
-	$getaddrh->execute($person);
-	my $rows = $getaddrh->fetchall_arrayref();
-	my $row = $rows->[$#$rows];  # assume the last is the best
-
-	# XXX: po box
-	my @res = Geo::Coder::US->geocode("$row->[2], $row->[3], $row->[4]");
-	if ($res[0]{'lat'}) {
-	    $plat = $res[0]{'lat'};
-	    $plon = $res[0]{'long'};
-	} else {
-	    print "Warning: unknown lat/lon for address for $person\n  ($row->[2], $row->[3], $row->[4], $row->[5])\n";
+	($lat, $lon) = parse_coords($lat, $lon);
+	if ($lat != 0) {
+	    $previous{$person}{'lat'} = $lat;
+	    $previous{$person}{'lon'} = $lon;
+	    return ($lat, $lon);
 	}
     }
 
-    if ($plat == 0 || $plon == 0 ||
-	($plat == 38 && $plon == -121) ||
-	$plat !~ /^\d+\.\d+$/ || $plon !~ /^-\d+\.\d+$/) {
+    #
+    # address specified
+    #
+    if ($prow->[0] eq 'Address') {
+	if ($opts{'g'}) {
 
-	print "Warning: unknown lat/lon for $person ($plat, $plon)\n";
-	if (exists($previous{$person})) {
-	    return ($previous{$person}{'lat'},$previous{$person}{'lon'});
+	    # XXX deal with PO boxes
+
+	    my @res = Geo::Coder::US->geocode($prow->[3]);
+	    if ($res[0]{'lat'}) {
+		$previous{$person}{'lat'} = $res[0]{'lat'};
+		$previous{$person}{'lon'} = $res[0]{'lon'};
+		return ($res[0]{'lat'}, $res[0]{'long'});
+	    } else {
+		print "Warning: unknown lat/lon for address for $person\n   $prow->[3]\n";
+	    }
 	}
-	($plat, $plon) = parse_coords("N38 38.000", "W121 50.000");
-#	$plat += $unknowncount * 0.002;
-	$plon += $unknowncount * 0.002;
-	$unknowncount++;
     }
-    $previous{$person}{'lat'} = $plat;
-    $previous{$person}{'lon'} = $plon;
-    return ($plat, $plon);
+
+    # uh oh...  if we got here, it's because we failed to get a real location...
+    print "Warning: unknown lat/lon for $person ($plat, $plon)\n";
+
+    # XXX
+    ($lat, $lon) = parse_coords("N38 38.000", "W121 50.000");
+
+    #	$lat += $unknowncount * 0.002;
+    $lon += $unknowncount * 0.002;
+    $unknowncount++;
+
+    $previous{$person}{'lat'} = $lat;
+    $previous{$person}{'lon'} = $lon;
+    return ($lat, $lon);
+}
+
+########################################
+# FCC Data
+#
+sub get_fcc_data {
+    return if (!$dbhsigns);
+    my $callsign = shift;
+    $callsign = uc($callsign);
+    my @signs;
+
+    use Data::Dumper;;
+    my $rows = get_many($hdh, $callsign);
+    #print Dumper($rows);
+    push @signs, $rows->[$#$rows][3] if ($#$rows != -1);
+    $rows = get_many($vdh, $callsign);
+    #print Dumper($rows);
+    push @signs, $rows->[$#$rows][0] if ($#$rows != -1);
+
+    return [] if ($#signs == -1);
+
+    my $row = get_one($calldetails, $signs[$#signs]);
+    print "grabbed: $callsign -> $row->[0]\n";
+    return $row;
+}
+
+########################################
+# SQL HELP
+sub get_one {
+    my $sth = shift;
+    print "here: " . join(",",caller()) . "\n";
+    $sth->execute(@_);
+    my $row = $sth->fetchrow_arrayref();
+    $sth->finish();
+    return $row;
+}
+
+sub get_one_value {
+    my $row = get_one(@_);
+    return $row->[0];
+}
+
+sub get_many {
+    my $sth = shift;
+    print "here: " . join(",",caller()) . "\n";
+    $sth->execute(@_);
+    my $rows = $sth->fetchall_arrayref();
+    $sth->finish();
+    return $rows;
 }
 
 1;
+

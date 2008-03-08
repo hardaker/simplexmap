@@ -11,9 +11,14 @@ use SimplexMap;
 use IO::String;
 
 sub get_opts {
-    return { d => '/home/hardaker/lib/simplexmap/hammap',
-	     H => '/home/hambot/hamsigns',
-	   }
+    my $opts =
+      { d => '/home/hardaker/lib/simplexmap/hammap',
+	H => '/home/hambot/hamsigns',
+	g => '/home/hardaker/lib/simplexmap/tiger/mydb',
+      };
+    $opts->{'H'} = '/home/hardaker/docs/ham/fcc/hamsigns'
+      if (! -f $opts->{'H'});
+    return $opts;
 };
 
 my %done;
@@ -83,20 +88,6 @@ my %primaries =
      introduction => 'You must be a valid member of a group before you can continue',
      questions =>
      [get_menu('groupid','Group:',$getgroups),
-#       { type => 'menu',
-# 	name => 'groupid',
-# 	text => 'Group:',
-# 	labels => sub {
-# 	    $getgroups->execute();
-# 	    my @ret;
-# 	    foreach my $row (@{$getgroups->fetchall_arrayref()}) {
-# 		print "here: $row->[0], $row->[1]\n";
-# 		push @ret, $row->[0], $row->[1];
-# 	    }
-# 	    return \@ret;
-# 	},
-# 	default => sub { qwpref('groupid') || '1' },
-#       },
       { type => 'hidetext',
 	name => 'grouppass',
 	text => 'Group Password:',
@@ -182,7 +173,8 @@ my %primaries =
 		    return "Coordinates: $rows->[2], $rows->[3]";
 		}
 	    } else {
-		return "Address: From FFC DB";
+		my $fcc = get_fcc_data(qwparam('callsign'));
+		return "$fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]";
 	    }
 	    return "Unknown type; this is a bug.   Contact KI6NQW.";
 	},
@@ -371,8 +363,11 @@ my %primaries =
 	text => 'Download',
 	datafn => 
 	sub {
+	    my $opts = get_opts();
+	    $opts->{'b'} = qwparam('eventid');
+	    init_simplexmap($opts);
+
 	    my $str = new IO::String;
-	    init_simplexmap(get_opts());
 	    export_kml($str);
 	    my $ref = $str->string_ref;
 	    $_[0]->print($$ref);
@@ -607,12 +602,13 @@ sub maybe_create_person {
 sub get_fcc_data {
     return if (!$dbh2);
     my $callsign = shift;
+    $callsign = uc($callsign);
     my @signs;
 
     use Data::Dumper;;
     my $rows = get_many($hdh, $callsign);
     print Dumper($rows);
-    push @signs, $rows->[$#$rows][3] if ($rows != -1);
+    push @signs, $rows->[$#$rows][3] if ($#$rows != -1);
     $rows = get_many($vdh, $callsign);
     print Dumper($rows);
     push @signs, $rows->[$#$rows][0] if ($#$rows != -1);
@@ -730,37 +726,6 @@ sub delete_connection {
 
 
 ########################################
-# SQL HELP
-sub get_one {
-    my $sth = shift;
-    print "here: " . join(",",caller()) . "\n";
-    $sth->execute(@_);
-    my $row = $sth->fetchrow_arrayref();
-    $sth->finish();
-    return $row;
-}
-
-sub get_one_value {
-    my $row = get_one(@_);
-    return $row->[0];
-}
-
-sub get_one_value_sql {
-    my $sql = shift;
-    my $sqlh = $dbh->prepare_cached($sql);
-    return get_one_value($sqlh, @_);
-}
-
-sub get_many {
-    my $sth = shift;
-    print "here: " . join(",",caller()) . "\n";
-    $sth->execute(@_);
-    my $rows = $sth->fetchall_arrayref();
-    $sth->finish();
-    return $rows;
-}
-
-########################################
 # MAIN
 
 my $qw = new QWizard(primaries => \%primaries, title => "Simplex Mapper");
@@ -770,3 +735,9 @@ if (ref($qw->{'generator'}) !~ /HTML/) {
     $qw->{'generator'}{'prefstore'}->load_data();
 }
 $qw->magic('pickgroup', 'aboutevent');
+
+sub get_one_value_sql {
+    my $sql = shift;
+    my $sqlh = $dbh->prepare_cached($sql);
+    return get_one_value($sqlh, @_);
+}

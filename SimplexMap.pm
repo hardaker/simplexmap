@@ -5,6 +5,7 @@ use Data::Dumper;
 use IO::File;
 use Data::Dumper;
 use Geo::Coder::US;
+use CGI qw(escapeHTML);
 
 use strict;
 
@@ -170,7 +171,7 @@ sub export_kml {
 
     foreach my $person (keys(%paths)) {
 	print $fh "<Folder>
-	  <name>Connections To $person</name>
+	  <name>Connections To " . escapeHTML($person) . "</name>
   $paths{$person}
   </Folder>
 ";
@@ -212,9 +213,9 @@ sub export_person {
 
     print $fh "
   <Placemark>
-    <name>$person: $fccdat->[0]</name>
-    <description>$person: $fccdat->[0]
-$eventdetails->[4]</description>
+    <name>" . escapeHTML("$person: $fccdat->[0]") . "</name>
+    <description>" . escapeHTML("$person: $fccdat->[0]
+$eventdetails->[4]") . "</description>
     <styleUrl>#khStyle652</styleUrl>
     <Point>
       <altitudeMode>clampToGround</altitudeMode>
@@ -226,7 +227,7 @@ $eventdetails->[4]</description>
 
 my %donepath;
 sub export_path {
-    my ($fh, $one, $two) = @_;
+    my ($fh, $one, $two, $signal) = @_;
     $one = uc($one);
     $two = uc($two);
     return if (exists($donepath{$one}{$two}));
@@ -237,8 +238,8 @@ sub export_path {
 
     $paths{$one} .= "
   <Placemark>
-    <description>$one to $two</description>
-    <name>$one to $two</name>
+    <name>" . escapeHTML("$one to $two") . "</name>
+    <description>" . escapeHTML("signal: $signal") . "</description>
     <styleUrl>#khStyle652</styleUrl>
     <LineString>
       <tesselate>1</tesselate>

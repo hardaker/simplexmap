@@ -435,6 +435,7 @@ my %primaries =
 	sub {
 	    my $opts = get_opts();
 	    $opts->{'b'} = qwparam('eventid');
+	    $opts->{'groupby'} = qwparam('groupby');
 	    init_simplexmap($opts);
 
 	    my $str = new IO::String;
@@ -640,8 +641,6 @@ sub get_menu {
     my $dbsth = shift;
     my @rest = @_;
 
-    print "arg: $name, $dbsth, $rest[0]\n";
-
     my $max = 1;
 
     return
@@ -668,7 +667,6 @@ sub get_menu {
 
 ########################################
 # PERSON
-print "cak\n";
 my $find_person = $dbh->prepare("select id from people where callsign = ?");
 my $make_person = $dbh->prepare("insert into people (id, callsign)
                                     select max(id)+1, ? from people");

@@ -74,7 +74,7 @@ my $getlocation  = $dbh->prepare("select eventpersonlocname, eventpersonloctype,
                                          eventpersonlocaddress,
                                          eventpersonloccity,
                                          eventpersonlocstate,
-                                         eventpersonloczip
+                                         eventpersonloczip, eventpersondetails
                                from eventmembers
                                left join people on id = eventperson
                                    where eventid = ?
@@ -93,8 +93,8 @@ my $inslocation = $dbh->prepare("insert into eventmembers
                                          eventpersonlocaddress,
                                          eventpersonloccity,
                                          eventpersonlocstate,
-                                         eventpersonloczip)
-                                 select  ?, id, ?, ?, ?, ?, ?, ?, ?, ?
+                                         eventpersonloczip, eventpersondetails)
+                                 select  ?, id, ?, ?, ?, ?, ?, ?, ?, ?, ?
                                    from  people where callsign = ?");
 
 my ($calldetails, $hdh, $vdh);
@@ -177,25 +177,41 @@ my %primaries =
       },
       { type => 'dynamic',
 	values => sub {
-	    my $locinfo = get_one($getlocation, qwparam('eventid'),
+	    my $eventiddef = get_many($getevents, qwparam('groupid'));
+	    my $locinfo = get_one($getlocation,
+				  qwparam('eventid') ||
+				  $eventiddef->[$#$eventiddef][0],
 				  qwparam('transmitloc') || 'Home',
 				  qwparam('callsign'));
-#	    print "locinfo:", Dumper($locinfo);
+	    print "locinfo:", Dumper($locinfo);
 	    if (!$locinfo) {
 		my $fcc = get_fcc_data(qwparam('callsign'));
-		$locinfo = ['','','','',$fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
+		$locinfo = ['','Address','','',
+			    $fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
 	    }
+	    $locinfo->[8] = "Power:      \nTranceiver: \nAntenna:    \n"
+	      if (!$locinfo->[8]);
+
 #	    print "locinfo:", Dumper($locinfo);
+
+	    qwparam('xmittype',$locinfo->[1]) if (!qwparam('xmittype'));
 	    qwparam('xmitaddr',$locinfo->[4]);
 	    qwparam('xmitcity',$locinfo->[5]);
 	    qwparam('xmitstate',$locinfo->[6]);
 	    qwparam('xmitzip',$locinfo->[7]);
-	    return 
-	      [{ name => 'xmitaddr',
+	    qwparam('xmitdetails',$locinfo->[8]) if (!qwparam('xmitdetails'));
+	    return
+	      [
+	       qw_menu('xmittype','Specify by:',[qw(Address Coordinates)],
+		       default => $locinfo->[1], indent => 1,
+		       refresh_on_change => 1),
+	       { name => 'xmitaddr',
 		 type => 'text',
 		 text => 'Address:',
 		 default => $locinfo->[4],
 		 indent => 1,
+		 doif => sub { qwparam('xmittype') eq 'Address' ||
+				 qwparam('xmittype') eq '' },
 	       },
 	       { type => 'table',
 		 indent => 1,
@@ -203,41 +219,18 @@ my %primaries =
 		 values => [[[qw_text('xmitcity','',default => $locinfo->[5]),
 			      qw_text('xmitstate','',default => $locinfo->[6]),
 			      qw_text('xmitzip','',default => $locinfo->[7]),
-			     ]]]
-	       }],
+			     ]]],
+		 doif => sub { qwparam('xmittype') eq 'Address' ||
+				 qwparam('xmittype') eq '' },
+	       },
+	       { type => 'textbox',
+		 name => 'xmitdetails',
+		 indent => 1,
+		 text => 'Transmitting Details:',
+		 default => $locinfo->[8],
+	       }
+	      ],
 	   }
-      },
-      { name => 'transmitdetails',
-	text => "Details:",
-	indent => 1,
-	type => 'label',
-	doif => sub {
-	    return 1 if (!qwparam('transmitloc') ||
-			 qwparam('transmitloc') eq 'Home');
-	    my $rows = get_one($getlocation, qwparam('eventid'),
-			       qwparam('transmitloc') || 'Home',
-			       qwparam('callsign'));
-	    if ($rows) {
-		return 1;
-	    }
-	    return 0
-	},
-	values => sub {
-	    my $rows = get_one($getlocation, qwparam('eventid'),
-			       qwparam('transmitloc') || 'Home',
-			       qwparam('callsign'));
-	    if ($rows) {
-		if ($rows->[1] eq 'Address') {
-		    return "Address: $rows->[4]";
-		} elsif ($rows->[1] eq 'Coordinates') {
-		    return "Coordinates: $rows->[2], $rows->[3]";
-		}
-	    } else {
-		my $fcc = get_fcc_data(qwparam('callsign'));
-		return "$fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]";
-	    }
-	    return "Unknown type; this is a bug.   Contact KI6NQW.";
-	},
       },
       "",
 #       qw_label("Today:", "Define connection information today for:"),
@@ -263,9 +256,10 @@ my %primaries =
 	 $dellocation->execute(qwparam('eventid'), qwparam('transmitloc'),
 			       qwparam('callsign'));
 	 $inslocation->execute(qwparam('eventid'), qwparam('transmitloc'),
-			       'Address', '', '',
+			       qwparam('xmittype'), '', '',
 			       qwparams('xmitaddr','xmitcity',
-					'xmitstate','xmitzip','callsign'));
+					'xmitstate','xmitzip','xmitdetails',
+					'callsign'));
 	 foreach my $name (qw(callsign eventid transmitloc transmitdet)) {
 	     qwpref($name, qwparam($name));
 	 }
@@ -398,9 +392,22 @@ my %primaries =
        url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares.kml&ie=UTF8&z=10&om=0',
        linktext => 'Open the KML file in a browser (Google Maps)',
      },
-     { type => 'link',
-       url => '/yoloares.csv',
-       linktext => 'Comma Separated Value (CSV) List of Connections',
+     { type => 'filedownload',
+       name => 'getitcsv',
+       text => 'Download Connections CSV',
+       datafn => 
+       sub {
+	   my $opts = get_opts();
+	   $opts->{'b'} = qwparam('eventid');
+	   init_simplexmap($opts);
+
+	   my $str = new IO::String;
+	   export_csv($str);
+	   my $ref = $str->string_ref;
+	   print "out: $str $ref\n";
+	   print "out: $$ref\n";
+	   $_[0]->print($$ref);
+       }
      },
     ],
     post_answers => sub {
@@ -575,7 +582,8 @@ my %primaries =
 		 print "making connection: " . qwparam('callsign') . " -> " .
 		   uc(qwparam('other_' . $i)) . "\n";
 		 make_connection(qwparam('eventid'), qwparam('callsign'),
-				 uc(qwparam('other_' . $i)), "", "");
+				 uc(qwparam('other_' . $i)), "",
+				 qwparam('fivenine_' . $i));
 		 $count++;
 	     }
 	 }

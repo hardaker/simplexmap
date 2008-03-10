@@ -86,16 +86,14 @@ sub export_csv {
     my ($row, $count);
 
 
-    print $fh "#LISTENER,CANHEAR,MILES\n";
+    print $fh "#LISTENER,CANHEAR,MILES,SIGNAL,COMMENT\n";
 
     $getconnection->execute($opts{'b'});
     while ($row = $getconnection->fetchrow_arrayref()) {
 	my $dist = calc_distance(get_latlon($row->[0]),get_latlon($row->[1]));
-	print $fh "$row->[0],$row->[1],$dist\n";
+	print $fh "$row->[0],$row->[1],$dist,$row->[3],\"$row->[2]\"\n";
 	$count++;
     }
-
-    $fh->close();
 
     return $count;
 }
@@ -168,8 +166,7 @@ sub export_kml {
 	export_path($fh, $row->[0], $row->[1]);
 	$count++;
     }
-    print $fh "  </Folder>\n  <Folder>    <name>Connections</name>
-\n";
+    print $fh "  </Folder>\n  <Folder>\n    <name>Connections</name>\n";
 
     foreach my $person (keys(%paths)) {
 	print $fh "<Folder>
@@ -209,12 +206,15 @@ sub export_person {
     return if (exists($doneperson{$person}));
     $doneperson{$person} = 1;
 
+    my $eventdetails = get_one($getperson, $person, $opts{'b'});
+    my $fccdat = get_fcc_data($person);
     my ($lat, $lon) = get_latlon($person);
 
     print $fh "
   <Placemark>
-    <description>$person</description>
-    <name>$person</name>
+    <name>$person: $fccdat->[0]</name>
+    <description>$person: $fccdat->[0]
+$eventdetails->[4]</description>
     <styleUrl>#khStyle652</styleUrl>
     <Point>
       <altitudeMode>clampToGround</altitudeMode>

@@ -6,19 +6,21 @@ use strict;
 use Getopt::GUI::Long;
 Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
 
-my %opts = ('d' => 'FCC-data');
+my %opts = ('d' => 'FCC-data',
+	    'D' => 'hammap');
 my $sth;
 
 GetOptions(\%opts,
 	   ["c|create-dbs", "Drop and recreate the tables"],
+	   ["D|db","DB File"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
 if ($opts{'c'}) {
-    unlink("hammap");
+    unlink($opts{D});
 }
 
-my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{D}");
 
     $dbh->do("create table people
 (

@@ -379,22 +379,14 @@ my %primaries =
     title => "Export Results",
     questions =>
     [
-     { type => 'link',
-       url => '/simplexmap.png',
-       linktext => 'Simple Connection Diagram Plot',
-     },
-     { type => 'link',
-       url => '/circlemap.png',
-       linktext => 'Circular Connection Diagram Plot',
-     },
-     qw_button('dokml','','dokml','Export to Google Earth KML'),
-     { type => 'link',
-       url => 'http://maps.google.com/maps?f=q&hl=en&geocode=&time=&date=&ttype=&q=http:%2F%2Fham.hardakers.net%2Fyoloares.kml&ie=UTF8&z=10&om=0',
-       linktext => 'Open the KML file in a browser (Google Maps)',
-     },
+     qw_button('dographviz','Diagrams:','dographviz','Show Bubble Diagram'),
+     "",
+     qw_label("Export:",""),
+     qw_button('dokml','To Google Earth','dokml','KML', indent => 1),
      { type => 'filedownload',
        name => 'getitcsv',
-       text => 'Download Connections CSV',
+       text => 'To Connections CSV:',
+       indent => 1,
        datafn => 
        sub {
 	   my $opts = get_opts();
@@ -414,9 +406,15 @@ my %primaries =
 	if (qwparam('dokml')) {
 	    $_[0]->add_todos('exportkml');
 	}
+	if (qwparam('dographviz')) {
+	    $_[0]->add_todos('showgraphviz');
+	}
     },
    },
 
+########################################
+# KML
+#
    'exportkml' =>
    {
      title => "Export to KML",
@@ -447,6 +445,26 @@ my %primaries =
       },
      ],
     },
+
+########################################
+# GraphViz
+#
+   'showgraphviz' =>
+   { title => "Connection Map",
+     questions =>
+     [{ type => 'image',
+	imgdata => sub {
+	    my $opts = get_opts();
+	    $opts->{'b'} = qwparam('eventid');
+	    $opts->{'l'} = 'dot';
+	    init_simplexmap($opts);
+
+	    my $str = new IO::String;
+	    export_graphviz($str);
+	    my $ref = $str->string_ref;
+	    return [$$ref];
+	}}],
+   },
 
 ################################
 # Collect Collection Information

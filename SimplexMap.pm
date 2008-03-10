@@ -6,6 +6,7 @@ use IO::File;
 use Data::Dumper;
 use Geo::Coder::US;
 use CGI qw(escapeHTML);
+use GraphViz;
 
 use strict;
 

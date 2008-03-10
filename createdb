@@ -12,7 +12,7 @@ my $sth;
 
 GetOptions(\%opts,
 	   ["c|create-dbs", "Drop and recreate the tables"],
-	   ["D|db","DB File"],
+	   ["D|db=s","DB File"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 

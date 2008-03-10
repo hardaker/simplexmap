@@ -183,7 +183,7 @@ my %primaries =
 				  $eventiddef->[$#$eventiddef][0],
 				  qwparam('transmitloc') || 'Home',
 				  qwparam('callsign'));
-	    print "locinfo:", Dumper($locinfo);
+#	    print "locinfo:", Dumper($locinfo);
 	    if (!$locinfo) {
 		my $fcc = get_fcc_data(qwparam('callsign'));
 		$locinfo = ['','Address','','',

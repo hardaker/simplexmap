@@ -367,7 +367,7 @@ sub get_one_value {
 
 sub get_many {
     my $sth = shift;
-#    print "here: " . join(",",caller()) . "\n";
+    print STDERR "here: " . join(",",caller()) . "\n";
     $sth->execute(@_);
     my $rows = $sth->fetchall_arrayref();
     $sth->finish();

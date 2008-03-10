@@ -29,8 +29,6 @@ sub init_simplexmap {
     my ($opts) = @_;
     %opts = %$opts;
 
-    print Dumper(\%opts);
-    
     # connection db setup
     if ($opts{'d'} && -f $opts{'d'}) {
 	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
@@ -162,7 +160,6 @@ sub export_kml {
     $getconnection->execute($opts{'b'});
     print $fh "  <Folder>\n    <name>Stations</name>\n";
     while ($row = $getconnection->fetchrow_arrayref()) {
-	print "kml: $row->[0] $row->[1]\n";
 	export_person($fh, $row->[0]);
 	export_person($fh, $row->[1]);
 	export_path($fh, $row->[0], $row->[1], $row->[3], $row->[2]);
@@ -348,7 +345,7 @@ sub get_fcc_data {
     return [] if ($#signs == -1);
 
     my $row = get_one($calldetails, $signs[$#signs]);
-    print "grabbed: $callsign -> $row->[0]\n";
+#    print "grabbed: $callsign -> $row->[0]\n";
     return $row;
 }
 
@@ -356,7 +353,7 @@ sub get_fcc_data {
 # SQL HELP
 sub get_one {
     my $sth = shift;
-    print "here: " . join(",",caller()) . "\n";
+#    print "here: " . join(",",caller()) . "\n";
     $sth->execute(@_);
     my $row = $sth->fetchrow_arrayref();
     $sth->finish();
@@ -370,7 +367,7 @@ sub get_one_value {
 
 sub get_many {
     my $sth = shift;
-    print "here: " . join(",",caller()) . "\n";
+#    print "here: " . join(",",caller()) . "\n";
     $sth->execute(@_);
     my $rows = $sth->fetchall_arrayref();
     $sth->finish();

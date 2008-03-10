@@ -164,7 +164,7 @@ sub export_kml {
 	print "kml: $row->[0] $row->[1]\n";
 	export_person($fh, $row->[0]);
 	export_person($fh, $row->[1]);
-	export_path($fh, $row->[0], $row->[1]);
+	export_path($fh, $row->[0], $row->[1], $row->[3], $row->[2]);
 	$count++;
     }
     print $fh "  </Folder>\n  <Folder>\n    <name>Connections</name>\n";
@@ -227,7 +227,7 @@ $eventdetails->[4]") . "</description>
 
 my %donepath;
 sub export_path {
-    my ($fh, $one, $two, $signal) = @_;
+    my ($fh, $one, $two, $signal, $comment) = @_;
     $one = uc($one);
     $two = uc($two);
     return if (exists($donepath{$one}{$two}));
@@ -239,7 +239,7 @@ sub export_path {
     $paths{$one} .= "
   <Placemark>
     <name>" . escapeHTML("$one to $two") . "</name>
-    <description>" . escapeHTML("signal: $signal") . "</description>
+    <description>" . escapeHTML("signal: $signal\n$comment") . "</description>
     <styleUrl>#khStyle652</styleUrl>
     <LineString>
       <tesselate>1</tesselate>

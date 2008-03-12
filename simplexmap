@@ -193,8 +193,8 @@ my %primaries =
 		$locinfo = ['','Address','','',
 			    $fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
 	    }
-	    $locinfo->[8] = "Power:      \nTranceiver: \nAntenna:    \n"
-	      if (!$locinfo->[8]);
+	    my $deflocinfo = "Power:      \nTranceiver: \nAntenna:    \n";
+	    $locinfo->[8] = $deflocinfo if (!$locinfo->[8]);
 
 #	    print "locinfo:", Dumper($locinfo);
 
@@ -203,7 +203,7 @@ my %primaries =
 	    qwparam('xmitcity',$locinfo->[5]);
 	    qwparam('xmitstate',$locinfo->[6]);
 	    qwparam('xmitzip',$locinfo->[7]);
-	    qwparam('xmitdetails',$locinfo->[8]) if (!qwparam('xmitdetails'));
+	    qwparam('xmitdetails',$locinfo->[8]);
 	    return
 	      [
 	       qw_text('xmitname','Location Name:',
@@ -263,9 +263,17 @@ my %primaries =
       "",
      ],
      post_answers => sub {
+	 # save preferences
+	 foreach my $name (qw(callsign transmitloc)) {
+	     qwpref($name, qwparam($name));
+	 }
+
+	 # reset location named based on new-name for creation
 	 if (qwparam('transmitloc') eq 'Create New') {
 	     qwparam('transmitloc', qwparam('xmitname'));
 	 }
+
+	 # delete old location and insert new
 	 $dellocation->execute(qwparam('eventid'), qwparam('transmitloc'),
 			       qwparam('callsign'));
 	 $inslocation->execute(qwparam('eventid'), qwparam('transmitloc'),
@@ -273,9 +281,8 @@ my %primaries =
 			       qwparams('xmitaddr','xmitcity',
 					'xmitstate','xmitzip','xmitdetails',
 					'callsign'));
-	 foreach my $name (qw(callsign eventid transmitloc transmitdet)) {
-	     qwpref($name, qwparam($name));
-	 }
+
+	 # decide which button they pushed and go on
 	 if (qwparam('export')) {
 	     $_[0]->add_todos('export');
 	 } elsif (qwparam('addmembers')) {

@@ -161,8 +161,12 @@ my %primaries =
        refresh_on_change => 1,
        type => 'menu',
        values => sub {
+	   my $eventiddef = get_many($getevents, qwparam('groupid'));
+
 	   my $rows = get_many($getlocations,
-			       qwparam('eventid'), qwparam('callsign'));
+			       qwparam('eventid') ||
+			       $eventiddef->[$#$eventiddef][0],
+			       qwparam('callsign'));
 	   my @values = qw(Home);
 	   foreach my $row (@$rows) {
 	       if ($row->[0] ne 'Home') {
@@ -202,6 +206,10 @@ my %primaries =
 	    qwparam('xmitdetails',$locinfo->[8]) if (!qwparam('xmitdetails'));
 	    return
 	      [
+	       qw_text('xmitname','Location Name:',
+		       doif => sub {qwparam('transmitloc') eq 'Create New'},
+		       default => 'New Name',
+		       indent => 1),
 	       qw_menu('xmittype','Specify by:',[qw(Address Coordinates)],
 		       default => $locinfo->[1], indent => 1,
 		       refresh_on_change => 1),
@@ -225,6 +233,8 @@ my %primaries =
 	       },
 	       { type => 'textbox',
 		 name => 'xmitdetails',
+		 width => 80,
+		 height => 5,
 		 indent => 1,
 		 text => 'Transmitting Details:',
 		 default => $locinfo->[8],
@@ -253,6 +263,9 @@ my %primaries =
       "",
      ],
      post_answers => sub {
+	 if (qwparam('transmitloc') eq 'Create New') {
+	     qwparam('transmitloc', qwparam('xmitname'));
+	 }
 	 $dellocation->execute(qwparam('eventid'), qwparam('transmitloc'),
 			       qwparam('callsign'));
 	 $inslocation->execute(qwparam('eventid'), qwparam('transmitloc'),
@@ -705,7 +718,7 @@ sub get_fcc_data {
     return [] if ($#signs == -1);
 
     my $row = get_one($calldetails, $signs[$#signs]);
-    print "grabbed: $callsign -> $row->[0]\n";
+#    print "grabbed: $callsign -> $row->[0]\n";
     return $row;
 }
 

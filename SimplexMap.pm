@@ -23,7 +23,7 @@ our $vdh;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(init_simplexmap export_kml export_graphviz export_csv
-		 get_one get_many get_one_value);
+		 get_one get_many get_one_value debug);
 
 sub init_simplexmap {
     my ($opts) = @_;
@@ -190,6 +190,24 @@ sub start_kml {
 <kml xmlns="http://earth.google.com/kml/2.0">
 <Folder>
   <name>Connection Map</name>
+  <Style id="yred">
+    <LineStyle>
+      <width>2</width>
+      <color>7f0000ff</color>
+    </LineStyle>
+  </Style>
+  <Style id="ygreen">
+    <LineStyle>
+      <width>2</width>
+      <color>7f00ff00</color>
+    </LineStyle>
+  </Style>
+  <Style id="yblue">
+    <LineStyle>
+      <width>2</width>
+      <color>7fff0000</color>
+    </LineStyle>
+  </Style>
 ';
 }
 
@@ -221,7 +239,7 @@ sub export_person {
 Location $eventdetails->[7]: $location
 $eventdetails->[8]
 ") . "</description>
-    <styleUrl>#khStyle652</styleUrl>
+    <styleUrl>#yblue</styleUrl>
     <Point>
       <altitudeMode>clampToGround</altitudeMode>
       <coordinates>$lon,$lat,0</coordinates>
@@ -244,7 +262,6 @@ sub export_path {
     my $distance = calc_distance($lat1, $lon1, $lat2, $lon2);
 
     my $key;
-    print "groupby: $opts{'groupby'}\n";
     if ($opts{'groupby'} eq 'From') {
 	$key = $two;
     } else {
@@ -255,7 +272,7 @@ sub export_path {
   <Placemark>
     <name>" . escapeHTML("$one heard $two") . "</name>
     <description>" . escapeHTML("signal: $signal\ndistance: $distance\n$comment") . "</description>
-    <styleUrl>#khStyle652</styleUrl>
+    <styleUrl>#yblue</styleUrl>
     <LineString>
       <tesselate>1</tesselate>
       <coordinates>$lon1,$lat1,0
@@ -286,14 +303,14 @@ sub get_latlon {
     if (!$prow && $getaddrh) {
 	# doesn't exist in the DB, force to address untill someone
 	# fills in more appropriate info.
-	print "No entry for $person\n";
+	debug("No entry for $person\n");
 	$prow->[0] = 'Address';
 	$status = "Assumed at registered FCC Address";
 	
 	# pull the address from the FCC database
 	my $dat = get_fcc_data($person);
 	$prow->[3] = "$dat->[1], $dat->[2], $dat->[3], $dat->[4]";
-	print "  at: $prow->[3]\n";
+	debug("  at: $prow->[3]\n");
     }
 
     #
@@ -324,13 +341,13 @@ sub get_latlon {
 		return ($res[0]{'lat'}, $res[0]{'long'},
 			$status || "Entered Physical Address");
 	    } else {
-		print "Warning: unknown lat/lon for address for $person\n   $prow->[3]\n";
+		debug("Warning: unknown lat/lon for address for $person\n   $prow->[3]\n");
 	    }
 	}
     }
 
     # uh oh...  if we got here, it's because we failed to get a real location...
-    print "Warning: unknown lat/lon for $person ($plat, $plon)\n";
+    debug("Warning: unknown lat/lon for $person ($plat, $plon)\n");
 
     # XXX
     ($lat, $lon) = parse_coords("N38 38.000", "W121 50.000");
@@ -364,7 +381,7 @@ sub get_fcc_data {
     return [] if ($#signs == -1);
 
     my $row = get_one($calldetails, $signs[$#signs]);
-#    print "grabbed: $callsign -> $row->[0]\n";
+#    debug("grabbed: $callsign -> $row->[0]\n");
     return $row;
 }
 
@@ -372,7 +389,7 @@ sub get_fcc_data {
 # SQL HELP
 sub get_one {
     my $sth = shift;
-    print "here: " . join(",",caller()) . "\n";
+    debug("here: " . join(",",caller()) . "\n");
     $sth->execute(@_);
     my $row = $sth->fetchrow_arrayref();
     $sth->finish();
@@ -386,11 +403,17 @@ sub get_one_value {
 
 sub get_many {
     my $sth = shift;
-    print STDERR "here: " . join(",",caller()) . "\n";
+    debug("here: " . join(",",caller()) . "\n");
     $sth->execute(@_);
     my $rows = $sth->fetchall_arrayref();
     $sth->finish();
     return $rows;
+}
+
+sub debug {
+    if ($opts{'debug'}) {
+	print STDERR @_;
+    }
 }
 
 1;

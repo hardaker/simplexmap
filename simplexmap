@@ -958,5 +958,3 @@ sub get_one_value_sql {
     return get_one_value($sqlh, @_);
 }
 
-sub debug {
-}

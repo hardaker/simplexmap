@@ -561,6 +561,7 @@ my %primaries =
 	name => 'groupby',
 	text => 'Group connection lines:',
 	default => 'From',
+	refresh_on_change => 1,
 	labels => ['From','From the caller',
 		   'To','From the listener',
 		  ],

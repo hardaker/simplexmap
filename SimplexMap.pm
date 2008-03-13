@@ -174,7 +174,7 @@ sub export_kml {
 
     foreach my $person (keys(%paths)) {
 	print $fh "<Folder>
-	  <name>Connections To " . escapeHTML($person) . "</name>
+	  <name>Connections: " . escapeHTML($person) . "</name>
   $paths{$person}
   </Folder>
 ";
@@ -241,10 +241,20 @@ sub export_path {
     my ($lat1, $lon1) = get_latlon($one, $opts{'b'});
     my ($lat2, $lon2) = get_latlon($two, $opts{'b'});
 
-    $paths{$one} .= "
+    my $distance = calc_distance($lat1, $lon1, $lat2, $lon2);
+
+    my $key;
+    print "groupby: $opts{'groupby'}\n";
+    if ($opts{'groupby'} eq 'From') {
+	$key = $two;
+    } else {
+	$key = $one;
+    }
+
+    $paths{$key} .= "
   <Placemark>
-    <name>" . escapeHTML("$one to $two") . "</name>
-    <description>" . escapeHTML("signal: $signal\n$comment") . "</description>
+    <name>" . escapeHTML("$one heard $two") . "</name>
+    <description>" . escapeHTML("signal: $signal\ndistance: $distance\n$comment") . "</description>
     <styleUrl>#khStyle652</styleUrl>
     <LineString>
       <tesselate>1</tesselate>

@@ -59,19 +59,32 @@ my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{D}");
 
 $dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '')");
 
+    $dbh->do("create table locations
+(
+      locationid          int,
+      locationperson      int,
+      locationname        varchar(64),
+      locationtype        varchar(64),
+      locationlat         varchar(4096),
+      locationlon         varchar(4096),
+      locationaddress     varchar(4096),
+      locationcity        varchar(4096),
+      locationstate       varchar(4096),
+      locationzip         int
+)");
+
+    $dbh->do("insert into locations (locationid, locationperson, locationname,
+                                     locationtype, locationaddress,
+                                     locationcity, locationstate, locationzip)
+                          values(1,1,'Bogus','Address','100 Faro Ave','Davis',
+                                 'CA',95616)");
+
     $dbh->do("create table eventmembers
 (
       eventid                   int,
       eventperson               int,
-      eventpersondetails        varchar(4096),
-      eventpersonlocname        varchar(64),
-      eventpersonloctype        varchar(64),
-      eventpersonloclat         varchar(4096),
-      eventpersonloclon         varchar(4096),
-      eventpersonlocaddress     varchar(4096),
-      eventpersonloccity        varchar(4096),
-      eventpersonlocstate       varchar(4096),
-      eventpersonloczip         int
+      eventpersonlocation       int,
+      eventpersondetails        varchar(4096)
 )");
 
     $dbh->do("create table connections

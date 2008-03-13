@@ -51,51 +51,97 @@ my $getgrouppeoplesorted =
                   where groupid = ?
                order by callsign");
 
+my $getpersonid = $dbh->prepare("select id from people where callsign = ?");
+
 my $getperson = $dbh->prepare("select eventpersonlat, eventpersonlon
                                  from eventmembers
                             left join people on eventperson = id
                                 where callsign = ?");
-my $insconnection = $dbh->prepare("insert into connections (listener, heard, band) values(?,?,?)");
-my $getconnection = $dbh->prepare("select heard from connections where listener = ? and heard = ? and band = ?");
-my $delconnection = $dbh->prepare("delete from connections where listener = ? and heard = ? and band = ?");
+my $insconnection = $dbh->prepare("insert into connections
+                                               (listener, heard, band)
+                                               values(?,?,?)");
+my $getconnection = $dbh->prepare("select heard from connections
+                                    where listener = ?
+                                      and heard = ?
+                                      and band = ?");
+my $delconnection = $dbh->prepare("delete from connections
+                                    where listener = ?
+                                      and heard = ?
+                                      and band = ?");
 
-my $getlocations = $dbh->prepare("select eventpersonlocname, eventpersonloctype,
-                                         eventpersonloclat, eventpersonloclon,
-                                         eventpersonlocaddress,
-                                         eventpersonloccity,
-                                         eventpersonlocstate,
-                                         eventpersonloczip
-                               from eventmembers
-                               left join people on id = eventperson
-                                   where eventid = ?
+my $geteventperson = $dbh->prepare("select eventid, eventperson,
+                                           eventpersonlocation,
+                                           eventpersondetails
+                                      from eventmembers
+                                 left join people
+                                        on id = eventperson
+                                     where eventid = ?
+                                       and callsign = ?");
+
+my $deleventperson = $dbh->prepare("delete from eventmembers
+                                     where eventid = ?
+                                       and eventperson in
+                                           (select id from people
+                                            where callsign = ?)");
+
+my $inseventperson = $dbh->prepare("insert into eventmembers
+                                                (eventid, eventperson,
+                                                 eventpersonlocation,
+                                                 eventpersondetails)
+                                       select ?, id, ?, ?
+                                         from people
+                                        where callsign = ?");
+
+my $getlocations = $dbh->prepare("select locationid, locationname
+                                    from locations
+                               left join people on id = locationperson
+                                   where callsign = ?");
+my $getlocation  = $dbh->prepare("select locationname, locationtype,
+                                         locationlat, locationlon,
+                                         locationaddress,
+                                         locationcity,
+                                         locationstate,
+                                         locationzip, locationid
+                               from locations
+                               left join people on id = locationperson
+                                   where locationname = ?
                                      and callsign = ?");
-my $getlocation  = $dbh->prepare("select eventpersonlocname, eventpersonloctype,
-                                         eventpersonloclat, eventpersonloclon,
-                                         eventpersonlocaddress,
-                                         eventpersonloccity,
-                                         eventpersonlocstate,
-                                         eventpersonloczip, eventpersondetails
-                               from eventmembers
-                               left join people on id = eventperson
-                                   where eventid = ?
-                                     and eventpersonlocname = ?
+my $getlocationbyid  = $dbh->prepare("select locationname, locationtype,
+                                         locationlat, locationlon,
+                                         locationaddress,
+                                         locationcity,
+                                         locationstate,
+                                         locationzip, locationid
+                               from locations
+                               left join people on id = locationperson
+                                   where locationid = ?
                                      and callsign = ?");
-my $dellocation = $dbh->prepare("delete from eventmembers
-                                  where eventid = ?
-                                    and eventpersonlocname = ?
-                                    and eventperson in
+my $dellocation = $dbh->prepare("delete from locations
+                                  where locationname = ?
+                                    and locationperson in
                                         (select id from people
                                           where callsign = ?)");
-my $inslocation = $dbh->prepare("insert into eventmembers
-                                        (eventid, eventperson,
-                                         eventpersonlocname, eventpersonloctype,
-                                         eventpersonloclat, eventpersonloclon,
-                                         eventpersonlocaddress,
-                                         eventpersonloccity,
-                                         eventpersonlocstate,
-                                         eventpersonloczip, eventpersondetails)
-                                 select  ?, id, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                                   from  people where callsign = ?");
+my $inslocation = $dbh->prepare("insert into locations
+                                        (locationid, locationperson,
+                                         locationname, locationtype,
+                                         locationlat, locationlon,
+                                         locationaddress,
+                                         locationcity,
+                                         locationstate,
+                                         locationzip)
+                                 select  max(locationid)+1,
+                                         ?, ?, ?, ?, ?, ?, ?, ?, ?
+                                   from  locations");
+my $updlocation = $dbh->prepare("update locations set
+                                        locationtype = ?,
+                                        locationlat = ?,
+                                        locationlon = ?,
+                                        locationaddress = ?,
+                                        locationcity = ?,
+                                        locationstate = ?,
+                                        locationzip)
+                                  where locationid = ?
+                                    and locationperson = ?");
 
 my ($calldetails, $hdh, $vdh);
 if ($dbh2) {
@@ -160,50 +206,75 @@ my %primaries =
        text => "Transmit Location:",
        refresh_on_change => 1,
        type => 'menu',
-       values => sub {
+       labels => sub {
 	   my $eventiddef = get_many($getevents, qwparam('groupid'));
 
 	   my $rows = get_many($getlocations,
-			       qwparam('eventid') ||
-			       $eventiddef->[$#$eventiddef][0],
 			       qwparam('callsign'));
-	   my @values = qw(Home);
+	   my @values;
+	   my $havehome = 0;
+
 	   foreach my $row (@$rows) {
-	       if ($row->[0] ne 'Home') {
-		   push @values, $row->[0];
-	       }
+	       $havehome = 1 if ($row->[1] ne 'Home');
+	       push @values, @$row;
 	   }
-	   push @values, 'Create New';
+	   push @values, qw(Home Home) if (!$havehome);
+	   push @values, 'Create New', 'Create New';
 	   return \@values;
        },
-       default => 'Home',
+       default => sub {
+	   my $rows = get_one($getlocations,
+			      qwparam('callsign'));
+	   return ($rows ? $rows->[0] : 'Home');
+       },
        refresh_on_change => 1,
       },
       { type => 'dynamic',
 	values => sub {
 	    my $eventiddef = get_many($getevents, qwparam('groupid'));
-	    my $locinfo = get_one($getlocation,
-				  qwparam('eventid') ||
-				  $eventiddef->[$#$eventiddef][0],
-				  qwparam('transmitloc') || 'Home',
-				  qwparam('callsign'));
-#	    print "locinfo:", Dumper($locinfo);
-	    if (!$locinfo) {
-		my $fcc = get_fcc_data(qwparam('callsign'));
-		$locinfo = ['','Address','','',
-			    $fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
+
+	    my $deflocation = qwparam('eventid') ||
+	      $eventiddef->[$#$eventiddef][0];
+
+	    my $locationid = qwparam('transmitloc');
+	    my $locinfo;
+	    if ($locationid =~ /^\d+$/) {
+		$locinfo = get_one($getlocationbyid,
+				   qwparam('transmitloc'),
+				   qwparam('callsign'));
+	    } else {
+		my $rows = get_one($getlocations,
+				   qwparam('callsign'));
+		if ($rows) {
+		    $locinfo = get_one($getlocationbyid,
+				       $rows->[0],
+				       qwparam('callsign'));
+		} else {
+		    my $fcc = get_fcc_data(qwparam('callsign'));
+		    $locinfo = ['','Address','','',
+				$fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
+		}
 	    }
+
+	    my $eventperson =
+	      get_one($geteventperson, qwparams(qw(eventid callsign)));
+
 	    my $deflocinfo = "Power:      \nTranceiver: \nAntenna:    \n";
-	    $locinfo->[8] = $deflocinfo if (!$locinfo->[8]);
+	    print Dumper($locinfo);
+	    if (!$eventperson) {
+		$eventperson = ['','','Home',$deflocinfo];
+	    }
 
-#	    print "locinfo:", Dumper($locinfo);
+	    print "locinfo:", Dumper($locinfo);
 
-	    qwparam('xmittype',$locinfo->[1]) if (!qwparam('xmittype'));
+	    qwparam('xmittype',$locinfo->[1]);
+	    qwparam('xmitlat',$locinfo->[2]);
+	    qwparam('xmitlon',$locinfo->[3]);
 	    qwparam('xmitaddr',$locinfo->[4]);
 	    qwparam('xmitcity',$locinfo->[5]);
 	    qwparam('xmitstate',$locinfo->[6]);
 	    qwparam('xmitzip',$locinfo->[7]);
-	    qwparam('xmitdetails',$locinfo->[8]);
+	    qwparam('xmitdetails',$eventperson->[3]);
 	    return
 	      [
 	       qw_text('xmitname','Location Name:',
@@ -231,13 +302,28 @@ my %primaries =
 		 doif => sub { qwparam('xmittype') eq 'Address' ||
 				 qwparam('xmittype') eq '' },
 	       },
+	       { name => 'xmitlat',
+		 type => 'text',
+		 text => 'Latitude:',
+		 default => sub { $locinfo->[2] || "N38 32.123"},
+		 indent => 1,
+		 doif => sub { qwparam('xmittype') eq 'Coordinates' },
+	       },
+	       { name => 'xmitlon',
+		 type => 'text',
+		 text => 'Longitude:',
+		 default => sub { $locinfo->[3] || "W121 43.456"},
+		 indent => 1,
+		 doif => sub { qwparam('xmittype') eq 'Coordinates' },
+	       },
+	       "",
 	       { type => 'textbox',
 		 name => 'xmitdetails',
 		 width => 80,
 		 height => 5,
 		 indent => 1,
 		 text => 'Transmitting Details:',
-		 default => $locinfo->[8],
+		 default => $eventperson->[3],
 	       }
 	      ],
 	   }
@@ -264,23 +350,49 @@ my %primaries =
      ],
      post_answers => sub {
 	 # save preferences
-	 foreach my $name (qw(callsign transmitloc)) {
+	 foreach my $name (qw(callsign transmitloc xmitlat xmitlon)) {
 	     qwpref($name, qwparam($name));
 	 }
 
+	 my $personidrow = get_one($getpersonid, qwparam('callsign'));
+
+	 print "starting in: " . qwparam('transmitloc') . "\n";
+
+	 my $locationid;
 	 # reset location named based on new-name for creation
-	 if (qwparam('transmitloc') eq 'Create New') {
-	     qwparam('transmitloc', qwparam('xmitname'));
+	 if (qwparam('transmitloc') eq 'Create New' ||
+	     qwparam('transmitloc') eq 'Home') {
+	     qwparam('transmitloc', qwparam('xmitname'))
+	       if (qwparam('transmitloc') eq 'Create New');
+	     # simply a new one...
+
+	     # make sure the name is unique
+	     $dellocation->execute(qwparam('transmitloc'), qwparam('callsign'));
+
+	     # make the new one
+	     $inslocation->execute($personidrow->[0],
+				   qwparams(qw(transmitloc xmittype
+					       xmitlat xmitlon)),
+				   qwparams('xmitaddr','xmitcity',
+					    'xmitstate','xmitzip'));
+	     my $locinfo = get_one($getlocation, qwparam('transmitloc'),
+				   qwparam('callsign'));
+	     $locationid = $locinfo->[8];
+	 } else {
+	     # just update the old
+	     $updlocation->execute(qwparams(qw(xmittype xmitlat xmitlon
+					       xmitaddr xmitcity xmitstate
+					       xmitzip transmitloc)),
+				   $personidrow->[0]);
+	     $locationid = qwparam('transmitloc');
 	 }
 
-	 # delete old location and insert new
-	 $dellocation->execute(qwparam('eventid'), qwparam('transmitloc'),
-			       qwparam('callsign'));
-	 $inslocation->execute(qwparam('eventid'), qwparam('transmitloc'),
-			       qwparam('xmittype'), '', '',
-			       qwparams('xmitaddr','xmitcity',
-					'xmitstate','xmitzip','xmitdetails',
-					'callsign'));
+	 # delete the old event member and insert new
+	 $deleventperson->execute(qwparams(qw(eventid callsign)));
+	 print Dumper([qwparams(qw(eventid callsign)), $locationid,
+		       qwparam('xmitdetails')]);
+	 $inseventperson->execute(qwparam('eventid'), $locationid,
+				  qwparams('xmitdetails', 'callsign'));
 
 	 # decide which button they pushed and go on
 	 if (qwparam('export')) {
@@ -716,10 +828,10 @@ sub get_fcc_data {
 
     use Data::Dumper;;
     my $rows = get_many($hdh, $callsign);
-    print Dumper($rows);
+#    print Dumper($rows);
     push @signs, $rows->[$#$rows][3] if ($#$rows != -1);
     $rows = get_many($vdh, $callsign);
-    print Dumper($rows);
+#    print Dumper($rows);
     push @signs, $rows->[$#$rows][0] if ($#$rows != -1);
 
     return [] if ($#signs == -1);
@@ -753,29 +865,17 @@ sub add_person_group {
 ########################################
 # EVENT DETAILS
 #
-my $find_details = $dbh->prepare("select
-      				   	  eventpersonband,
-      				   	  eventpersondetails,
-      				   	  eventpersonlocation,
-      				   	  eventpersonlat,
-      				   	  eventpersonlon
-                                   from eventmembers
-                                  where eventid = ?
-                                    and eventperson = ?
-                                    and eventpersonlocname = ?");
 my $delete_details = $dbh->prepare("delete from eventmembers
                                     where eventid = ?
-                                      and eventperson = ?
-                                      and eventpersonlocname = ?");
+                                      and eventperson = ?");
 my $make_details = $dbh->prepare("insert into eventmembers
       				   	  (eventid,
                                            eventperson,
-                                           eventpersonlocname,
-      				   	   eventpersondetails,
-      				   	   eventpersonlocation,
-      				   	   eventpersonlat,
-      				   	   eventpersonlon)
-                                  values (?,?,?,?,?,?,?)");
+                                           eventpersonlocation,
+      				   	   eventpersondetails)
+                                  select ?, ?, locationid, ? from locations
+                                   where locationname = ?
+                                     and locationperson = ?");
 
 sub add_person_event {
   my ($eventid, $callsign, $eventpersonlocname,
@@ -783,11 +883,12 @@ sub add_person_event {
       $eventpersonlat, $eventpersonlon) = @_;
   return if (!$eventid || !$callsign);
   my $person = maybe_create_person($callsign);
-  $delete_details->execute($eventid, $person, $eventpersonlocname);
-  $make_details->execute($eventid, $callsign,  $eventpersonlocname || "unknown",
-			 $eventpersondetails || "", $eventpersonlocation || "",
-			 $eventpersonlat || "", $eventpersonlon || "");
-  print "adding person eid=$eventid, call=$callsign\n";
+  $delete_details->execute($eventid, $person);
+  $make_details->execute($eventid, $person, 
+			 $eventpersondetails || "",
+			 $eventpersonlocname || "",
+			 $person);
+  debug("adding person eid=$eventid, call=$callsign\n");
 }
 
 ########################################
@@ -822,7 +923,7 @@ sub find_connection {
     my ($eventid, $call1, $call2) = @_;
     print "finding connection: $call1, $call2\n";
     my $row = get_one($find_connection, $eventid, $call1, $call2);
-    print "finding connection: $row\n";
+    debug("finding connection: $row\n");
     return $row;
 }
 
@@ -849,4 +950,7 @@ sub get_one_value_sql {
     my $sql = shift;
     my $sqlh = $dbh->prepare_cached($sql);
     return get_one_value($sqlh, @_);
+}
+
+sub debug {
 }

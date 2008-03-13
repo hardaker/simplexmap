@@ -42,12 +42,14 @@ sub init_simplexmap {
                           where eventid = ?
                             and listener <> heard");
 	$getperson =
-	  $dbh->prepare("select eventpersonloctype,
-                                eventpersonloclat, eventpersonloclon,
-                                eventpersonlocaddress, eventpersondetails
-                           from eventmembers
+	  $dbh->prepare("select locationtype,
+                                locationlat, locationlon,
+                                locationaddress
+                           from locations
                       left join people
                              on eventperson = id
+                      left join eventmembers
+                             on locationid = eventpersonlocation
                           where callsign = ?
                             and eventid = ?");
     }
@@ -353,7 +355,7 @@ sub get_fcc_data {
 # SQL HELP
 sub get_one {
     my $sth = shift;
-#    print "here: " . join(",",caller()) . "\n";
+    print "here: " . join(",",caller()) . "\n";
     $sth->execute(@_);
     my $row = $sth->fetchrow_arrayref();
     $sth->finish();

@@ -46,6 +46,8 @@ my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{D}");
       groupperson               int
 )");
 
+    $dbh->do("insert into members values(1,1)");
+
     $dbh->do("create table events
 (
       eventid                   int,

@@ -354,6 +354,13 @@ my %primaries =
 	     qwpref($name, qwparam($name));
 	 }
 
+	 # decide which button they pushed and go on; if export assume
+	 # they didn't change anything.
+	 if (qwparam('export')) {
+	     $_[0]->add_todos('export');
+	     return;
+	 }
+
 	 my $personidrow = get_one($getpersonid, qwparam('callsign'));
 
 	 print "starting in: " . qwparam('transmitloc') . "\n";
@@ -394,10 +401,8 @@ my %primaries =
 	 $inseventperson->execute(qwparam('eventid'), $locationid,
 				  qwparams('xmitdetails', 'callsign'));
 
-	 # decide which button they pushed and go on
-	 if (qwparam('export')) {
-	     $_[0]->add_todos('export');
-	 } elsif (qwparam('addmembers')) {
+
+	 if (qwparam('addmembers')) {
 	     $_[0]->add_todos('addmembers');
 	 } elsif (qwparam('addevent')) {
 	     $_[0]->add_todos('addevent');

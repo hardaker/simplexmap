@@ -44,7 +44,9 @@ sub init_simplexmap {
 	$getperson =
 	  $dbh->prepare("select locationtype,
                                 locationlat, locationlon,
-                                locationaddress
+                                locationaddress, locationcity, locationstate,
+                                locationzip,
+                                locationname, eventpersondetails
                            from locations
                       left join people
                              on eventperson = id
@@ -92,7 +94,8 @@ sub export_csv {
 
     $getconnection->execute($opts{'b'});
     while ($row = $getconnection->fetchrow_arrayref()) {
-	my $dist = calc_distance(get_latlon($row->[0]),get_latlon($row->[1]));
+	my $dist = calc_distance(get_latlon($row->[0], $opts{'b'}),
+				 get_latlon($row->[1], $opts{'b'}));
 	print $fh "$row->[0],$row->[1],$dist,$row->[3],\"$row->[2]\"\n";
 	$count++;
     }
@@ -209,13 +212,15 @@ sub export_person {
 
     my $eventdetails = get_one($getperson, $person, $opts{'b'});
     my $fccdat = get_fcc_data($person);
-    my ($lat, $lon) = get_latlon($person);
+    my ($lat, $lon, $location) = get_latlon($person, $opts{'b'});
 
     print $fh "
   <Placemark>
     <name>" . escapeHTML("$person: $fccdat->[0]") . "</name>
     <description>" . escapeHTML("$person: $fccdat->[0]
-$eventdetails->[4]") . "</description>
+Location $eventdetails->[7]: $location
+$eventdetails->[8]
+") . "</description>
     <styleUrl>#khStyle652</styleUrl>
     <Point>
       <altitudeMode>clampToGround</altitudeMode>
@@ -233,8 +238,8 @@ sub export_path {
     return if (exists($donepath{$one}{$two}));
     $donepath{$one}{$two} = 1;
 
-    my ($lat1, $lon1) = get_latlon($one);
-    my ($lat2, $lon2) = get_latlon($two);
+    my ($lat1, $lon1) = get_latlon($one, $opts{'b'});
+    my ($lat2, $lon2) = get_latlon($two, $opts{'b'});
 
     $paths{$one} .= "
   <Placemark>
@@ -256,23 +261,24 @@ sub export_all_paths {
 
 my %previous;
 sub get_latlon {
-    my $person = shift;
+    my ($person, $eventid) = @_;
 
     if (exists($previous{$person})) {
 	return ($previous{$person}{'lat'}, $previous{$person}{'lon'});
     }
 
     my ($lat, $lon);
-    $getperson->execute($opts{'b'}, uc($person));
+    $getperson->execute(uc($person), $opts{'b'});
 
     my $prow = $getperson->fetchrow_arrayref();
-    my ($plat, $plon);
+    my ($plat, $plon, $status);
 
     if (!$prow && $getaddrh) {
 	# doesn't exist in the DB, force to address untill someone
 	# fills in more appropriate info.
 	print "No entry for $person\n";
 	$prow->[0] = 'Address';
+	$status = "Assumed at registered FCC Address";
 	
 	# pull the address from the FCC database
 	my $dat = get_fcc_data($person);
@@ -289,7 +295,7 @@ sub get_latlon {
 	if ($lat != 0) {
 	    $previous{$person}{'lat'} = $lat;
 	    $previous{$person}{'lon'} = $lon;
-	    return ($lat, $lon);
+	    return ($lat, $lon, "From Entered Coordinates");
 	}
     }
 
@@ -301,11 +307,12 @@ sub get_latlon {
 
 	    # XXX deal with PO boxes
 
-	    my @res = Geo::Coder::US->geocode($prow->[3]);
+	    my @res = Geo::Coder::US->geocode("$prow->[3], $prow->[4], $prow->[5], $prow->[6]");
 	    if ($res[0]{'lat'}) {
 		$previous{$person}{'lat'} = $res[0]{'lat'};
 		$previous{$person}{'lon'} = $res[0]{'long'};
-		return ($res[0]{'lat'}, $res[0]{'long'});
+		return ($res[0]{'lat'}, $res[0]{'long'},
+			$status || "Entered Physical Address");
 	    } else {
 		print "Warning: unknown lat/lon for address for $person\n   $prow->[3]\n";
 	    }
@@ -324,7 +331,7 @@ sub get_latlon {
 
     $previous{$person}{'lat'} = $lat;
     $previous{$person}{'lon'} = $lon;
-    return ($lat, $lon);
+    return ($lat, $lon, "Randomly generated since it was unknown");
 }
 
 ########################################

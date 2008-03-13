@@ -208,6 +208,24 @@ sub start_kml {
       <color>7fff0000</color>
     </LineStyle>
   </Style>
+  <Style id="ypurple">
+    <LineStyle>
+      <width>2</width>
+      <color>7fb000b0</color>
+    </LineStyle>
+  </Style>
+  <Style id="yyellow">
+    <LineStyle>
+      <width>2</width>
+      <color>7f00b0b0</color>
+    </LineStyle>
+  </Style>
+  <Style id="ymarine">
+    <LineStyle>
+      <width>2</width>
+      <color>7fb0b000</color>
+    </LineStyle>
+  </Style>
 ';
 }
 

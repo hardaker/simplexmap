@@ -257,7 +257,7 @@ my %primaries =
 	    }
 
 	    my $eventperson =
-	      get_one($geteventperson, qwparams(qw(eventid callsign)));
+	      get_one($geteventperson, $deflocation, qwparams(qw(callsign)));
 
 	    my $deflocinfo = "Power:      \nTranceiver: \nAntenna:    \n";
 	    print Dumper($locinfo);
@@ -927,7 +927,7 @@ sub make_connection {
 
 sub find_connection {
     my ($eventid, $call1, $call2) = @_;
-    print "finding connection: $call1, $call2\n";
+    debug("finding connection: $call1, $call2\n");
     my $row = get_one($find_connection, $eventid, $call1, $call2);
     debug("finding connection: $row\n");
     return $row;

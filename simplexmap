@@ -949,6 +949,9 @@ if (ref($qw->{'generator'}) !~ /HTML/) {
     $qw->{'generator'}{'prefstore'} =
       new QWizard::Storage::File(file => $ENV{'HOME'} . "/.simplexmaprc");
     $qw->{'generator'}{'prefstore'}->load_data();
+} else {
+    $qw->{'generator'}{'tmpdir'} = "/var/www/ham/tmp";
+    $qw->{'generator'}{'imgpath'} = "/tmp/";
 }
 $qw->magic('pickgroup', 'aboutevent');
 

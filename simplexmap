@@ -363,7 +363,7 @@ my %primaries =
 
 	 my $personidrow = get_one($getpersonid, qwparam('callsign'));
 
-	 print "starting in: " . qwparam('transmitloc') . "\n";
+	 debug("starting in: " . qwparam('transmitloc') . "\n");
 
 	 my $locationid;
 	 # reset location named based on new-name for creation
@@ -719,16 +719,16 @@ my %primaries =
      sub {
 	 my $count = 0;
 	 my $people = get_many($getgrouppeople, qwparam('groupid'));
-	 print "starting: $#$people\n";
+	 debug("starting: $#$people\n");
 	 for (my $i = 0; $i <= $#$people; $i++) {
 	     if (qwparam("heard_$people->[$i][0]")) {
-		 print " heard: $people->[$i][0]\n";
+		 debug(" heard: $people->[$i][0]\n");
 		 make_connection(qwparam('eventid'), qwparam('callsign'),
 				 $people->[$i][0], "",
 				 qwparam("fivenine_$people->[$i][0]"));
 		 $count++;
 	     } else {
-		 print "  nope: $people->[$i][0]\n";
+		 debug("  nope: $people->[$i][0]\n");
 		 delete_connection(qwparam('eventid'), qwparam('callsign'),
 				   $people->[$i][0]);
 	     }
@@ -810,8 +810,8 @@ my $make_person = $dbh->prepare("insert into people (id, callsign)
                                     select max(id)+1, ? from people");
 sub maybe_create_person {
     my ($callsign, $eventid) = @_;
-    print "searching: $callsign $find_person $make_person\n";
-    print "       at: " . join(",",caller()) . "\n";
+    debug("searching: $callsign $find_person $make_person\n");
+    debug("       at: " . join(",",caller()) . "\n");
     my $person = get_one($find_person, $callsign);
     if (!$person) {
 	$make_person->execute($callsign);
@@ -819,7 +819,7 @@ sub maybe_create_person {
 	add_person_event($eventid, $callsign);
 	add_person_group(qwparam('groupid'), $callsign);
     }
-    print "    found: $person->[0]\n";
+    debug("    found: $person->[0]\n");
     return $person->[0];
 }
 
@@ -843,7 +843,7 @@ sub get_fcc_data {
     return [] if ($#signs == -1);
 
     my $row = get_one($calldetails, $signs[$#signs]);
-#    print "grabbed: $callsign -> $row->[0]\n";
+#    debug("grabbed: $callsign -> $row->[0]\n");
     return $row;
 }
 
@@ -864,7 +864,7 @@ sub add_person_group {
   $delete_membership->execute($groupid, $person);
   $add_membership->execute($groupid, $person);
 
-  print "adding person gid=$groupid, call=$callsign\n";
+  debug("adding person gid=$groupid, call=$callsign\n");
 }
 
 

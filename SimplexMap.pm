@@ -286,11 +286,13 @@ sub export_path {
 	$key = $one;
     }
 
+    my $style = "#yblue";
+    $style = $opts->{'styles'}{$key} if (exists($opts->{'styles'}{$key}));
     $paths{$key} .= "
   <Placemark>
     <name>" . escapeHTML("$one heard $two") . "</name>
     <description>" . escapeHTML("signal: $signal\ndistance: $distance\n$comment") . "</description>
-    <styleUrl>#yblue</styleUrl>
+    <styleUrl>$style</styleUrl>
     <LineString>
       <tesselate>1</tesselate>
       <coordinates>$lon1,$lat1,0

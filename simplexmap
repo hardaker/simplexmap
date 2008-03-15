@@ -522,6 +522,8 @@ my %primaries =
      qw_button('dokml','To Google Earth','dokml','KML', indent => 1),
      { type => 'filedownload',
        name => 'getitcsv',
+       linktext => 'Download CSV File',
+       extension => '.csv',
        text => 'To Connections CSV:',
        indent => 1,
        datafn => 
@@ -569,6 +571,8 @@ my %primaries =
       { type => 'filedownload',
 	name => 'getit',
 	text => 'Download',
+	linktext => 'Download KML File',
+	extension => '.kml',
 	datafn => 
 	sub {
 	    my $opts = get_opts();
@@ -952,6 +956,7 @@ if (ref($qw->{'generator'}) !~ /HTML/) {
 } else {
     $qw->{'generator'}{'tmpdir'} = "/var/www/ham/tmp";
     $qw->{'generator'}{'imgpath'} = "/tmp/";
+    $qw->{'generator'}{'datapath'} = "/tmp/";
 }
 $qw->magic('pickgroup', 'aboutevent');
 

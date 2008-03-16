@@ -287,7 +287,7 @@ sub export_path {
     }
 
     my $style = "#yblue";
-    $style = $opts->{'styles'}{$key} if (exists($opts->{'styles'}{$key}));
+    $style = $opts{'styles'}{$key} if (exists($opts{'styles'}{$key}));
     $paths{$key} .= "
   <Placemark>
     <name>" . escapeHTML("$one heard $two") . "</name>

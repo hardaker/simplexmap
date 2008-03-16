@@ -78,8 +78,8 @@ $dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '
     $dbh->do("insert into locations (locationid, locationperson, locationname,
                                      locationtype, locationaddress,
                                      locationcity, locationstate, locationzip)
-                          values(1,1,'Bogus','Address','100 Faro Ave','Davis',
-                                 'CA',95616)");
+                          values(1,1,'Home','Address','4240 Arroyo Ave',
+                                 'Davis', 'CA',95616)");
 
     $dbh->do("create table eventmembers
 (

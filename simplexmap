@@ -9,10 +9,11 @@ use strict;
 use lib qw(/home/hardaker/lib/simplexmap);
 use SimplexMap;
 use IO::String;
+use Data::Dumper;
 
 sub get_opts {
     my $opts =
-      { d => '/home/hardaker/lib/simplexmap/hammap',
+      { d => '/tmp/hammap',
 	H => '/home/hambot/hamsigns',
 	g => '/home/hardaker/lib/simplexmap/tiger/mydb',
       };
@@ -27,7 +28,7 @@ my %bands;
 my @bands = qw(160M 80M 60M 40M 30M 20M 17M 15M 12M 10M 6M 2M 1.25M 70cm);
 map { $bands{$_} = 1; } @bands;
 
-my $dbh = DBI->connect("DBI:SQLite2:dbname=hammap");
+my $dbh = DBI->connect("DBI:SQLite2:dbname=/tmp/hammap");
 my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
 $dbh2 = DBI->connect("DBI:SQLite2:dbname=/users/hardaker/docs/ham/fcc/hamsigns")
   if (!$dbh2);
@@ -181,13 +182,24 @@ my %primaries =
       qw_hidden('no_confirm',1),
      ],
      post_answers => sub {
-	 # XXX: check group pass
-	 # XXX: set prefs
+	 $getgroup->execute(qwparam('groupid'));
+	 my $row = $getgroup->fetchrow_arrayref();
+	 if ($row->[2] eq qwparam('grouppass')) {
+	     $_[0]->add_todos('aboutevent');
+	 } elsif ($row->[3] eq qwparam('grouppass')) {
+	     $_[0]->add_todos('groupadmin');
+	 } else {
+	     return;
+	 }
+
 	 qwpref('groupid',qwparam('groupid'));
 	 qwpref('grouppass',qwparam('grouppass'));
      },
    },
 
+   ########################################
+   # EVENT INFORMATION
+   #
    'aboutevent' =>
    { title => 'Event Information',
      introduction => 'Enter data about the event you are entering data for.  You may return at a future time to enter data about past events if you wish and collect the results.',
@@ -255,17 +267,13 @@ my %primaries =
 				$fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
 		}
 	    }
-
 	    my $eventperson =
 	      get_one($geteventperson, $deflocation, qwparams(qw(callsign)));
 
 	    my $deflocinfo = "Power:      \nTranceiver: \nAntenna:    \n";
-	    print Dumper($locinfo);
 	    if (!$eventperson) {
 		$eventperson = ['','','Home',$deflocinfo];
 	    }
-
-	    print "locinfo:", Dumper($locinfo);
 
 	    qwparam('xmittype',$locinfo->[1]);
 	    qwparam('xmitlat',$locinfo->[2]);
@@ -340,13 +348,6 @@ my %primaries =
       qw_button('export','','bogus','Just Download The Results',
 		helpdesc => '(download images, google earth kml, etc)'),
       "",
-      qw_button('addmembers','Group Administration:','bogus',
-		'Enter New Group Members',
-		doif => sub { return 1; }),
-      qw_button('addevent','','bogus',
-		'Create a new event',
-		doif => sub { return 1; }),
-      "",
      ],
      post_answers => sub {
 	 # save preferences
@@ -396,20 +397,43 @@ my %primaries =
 
 	 # delete the old event member and insert new
 	 $deleventperson->execute(qwparams(qw(eventid callsign)));
-	 print Dumper([qwparams(qw(eventid callsign)), $locationid,
-		       qwparam('xmitdetails')]);
+# 	 print Dumper([qwparams(qw(eventid callsign)), $locationid,
+# 		       qwparam('xmitdetails')]);
 	 $inseventperson->execute(qwparam('eventid'), $locationid,
 				  qwparams('xmitdetails', 'callsign'));
 
 
+	 $_[0]->add_todos('second');
+     },
+   },
+
+   ########################################
+   # GROUP ADMIN
+   #
+   'groupadmin' =>
+   { title => 'Group Administration',
+     questions =>
+     [
+      qw_button('addmembers','Group Administration:','bogus',
+		'Bulk add New Group Members',
+		doif => sub { return 1; }),
+      qw_button('addevent','','bogus',
+		'Create a new event',
+		doif => sub { return 1; }),
+      qw_button('entermydata','','bogus',
+		'Enter my data for an event',
+		doif => sub { return 1; }),
+     ],
+     post_answers =>
+     sub {
 	 if (qwparam('addmembers')) {
 	     $_[0]->add_todos('addmembers');
 	 } elsif (qwparam('addevent')) {
 	     $_[0]->add_todos('addevent');
 	 } else {
-	     $_[0]->add_todos('second');
+	     $_[0]->add_todos('aboutevent');
 	 }
-     },
+     }
    },
 
    #########################################
@@ -446,7 +470,7 @@ my %primaries =
    { title => 'Add Group Members',
      introduction => 'To pre-populate the connection database with group members so every member does not need to hand type a lot of callsigns, enter callsigns here:',
      questions =>
-     [qw_textbox('callsigns','Callsigns:')
+     [qw_textbox('callsigns','Callsigns:', height => 40)
      ],
      actions => 
      [
@@ -582,7 +606,12 @@ my %primaries =
 	    export_kml($str);
 	    my $ref = $str->string_ref;
 	    $_[0]->print($$ref);
+	    qwparam('outputfile', $_[5]);
 	}
+      },
+      { type => 'link',
+	linktext => 'Open in Google Maps',
+	url => sub { return "http://maps.google.com/?http://ham.hardakers.net/tmp/" . qwparam('outputfile') },
       },
      ],
     },
@@ -667,12 +696,13 @@ my %primaries =
 	   my $fivenine = [];
 	   my @rows;
 	   my $tc = -1;
+	   my $columns = 5;
 	   my $people = get_many($getgrouppeoplesorted, qwparam('groupid'));
 	   for (my $i = 0; $i <= $#$people; $i++) {
 	       next if ($done{$people->[$i][0]});
 	       $done{$people->[$i][0]} = 1;
 	       $tc++;
-	       if ($tc > 0 && $tc % 5 == 0) {
+	       if ($tc > 0 && $tc % $columns == 0) {
 		   push @rows, $checkboxes, $peoplerows, $fivenine;
 		   $checkboxes = [];
 		   $fivenine = [];
@@ -687,7 +717,8 @@ my %primaries =
 			     button_label => $people->[$i][0],
 			     default => $default);
  	       push @$fivenine, qw_text("fivenine_$people->[$i][0]", '',
- 					default => ($yes ? $yes->[3] : '59'));
+ 					default => ($yes ? $yes->[3] : '59'),
+					size => 3);
 	       my $fcc = get_fcc_data($people->[$i][0]);
 	       push @$peoplerows, qw_label('',$fcc->[0] || "");
 	   }
@@ -708,7 +739,7 @@ my %primaries =
 		  [
 		   qw_label('',"$i:"),
 		   qw_text('other_' . $i),
-		   qw_text('fivenine_' . $i,'',default => '59'),
+		   qw_text('fivenine_' . $i,'',default => '59', size => 3),
 		   ];
 	    }
 	    return [$table];
@@ -834,7 +865,6 @@ sub get_fcc_data {
     $callsign = uc($callsign);
     my @signs;
 
-    use Data::Dumper;;
     my $rows = get_many($hdh, $callsign);
 #    print Dumper($rows);
     push @signs, $rows->[$#$rows][3] if ($#$rows != -1);
@@ -956,7 +986,7 @@ if (ref($qw->{'generator'}) !~ /HTML/) {
     $qw->{'generator'}{'imgpath'} = "/tmp/";
     $qw->{'generator'}{'datapath'} = "/tmp/";
 }
-$qw->magic('pickgroup', 'aboutevent');
+$qw->magic('pickgroup');
 
 sub get_one_value_sql {
     my $sql = shift;

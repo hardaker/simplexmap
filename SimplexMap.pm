@@ -32,6 +32,7 @@ sub init_simplexmap {
     # connection db setup
     if ($opts{'d'} && -f $opts{'d'}) {
 	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
+	debug("opening $opts{d}\n");
 	$getconnection =
 	  $dbh->prepare("select receiver.callsign, sender.callsign,
                                 comment, rating from connections
@@ -92,10 +93,13 @@ sub export_csv {
 
     print $fh "#LISTENER,CANHEAR,MILES,SIGNAL,COMMENT\n";
 
+    debug("getting connections: eventid=$opts{'b'}\n");
     $getconnection->execute($opts{'b'});
     while ($row = $getconnection->fetchrow_arrayref()) {
-	my $dist = calc_distance(get_latlon($row->[0], $opts{'b'}),
-				 get_latlon($row->[1], $opts{'b'}));
+	my ($lat1, $lon1) = get_latlon($row->[0], $opts{'b'});
+	my ($lat2, $lon2) = get_latlon($row->[1], $opts{'b'});
+	
+	my $dist = calc_distance($lat1, $lon1, $lat2, $lon2);
 	print $fh "$row->[0],$row->[1],$dist,$row->[3],\"$row->[2]\"\n";
 	$count++;
     }
@@ -253,10 +257,10 @@ sub export_person {
     print $fh "
   <Placemark>
     <name>" . escapeHTML("$person: $fccdat->[0]") . "</name>
-    <description>" . escapeHTML("$person: $fccdat->[0]
+    <description><![CDATA[<pre>" . escapeHTML("$person: $fccdat->[0]
 Location $eventdetails->[7]: $location
 $eventdetails->[8]
-") . "</description>
+") . "</pre>]]></description>
     <styleUrl>#yblue</styleUrl>
     <Point>
       <altitudeMode>clampToGround</altitudeMode>
@@ -291,7 +295,7 @@ sub export_path {
     $paths{$key} .= "
   <Placemark>
     <name>" . escapeHTML("$one heard $two") . "</name>
-    <description>" . escapeHTML("signal: $signal\ndistance: $distance\n$comment") . "</description>
+    <description><![CDATA[<pre>" . escapeHTML("signal: $signal\ndistance: $distance\n$comment") . "</pre>]]></description>
     <styleUrl>$style</styleUrl>
     <LineString>
       <tesselate>1</tesselate>
@@ -329,8 +333,10 @@ sub get_latlon {
 	
 	# pull the address from the FCC database
 	my $dat = get_fcc_data($person);
-	$prow->[3] = "$dat->[1], $dat->[2], $dat->[3], $dat->[4]";
-	debug("  at: $prow->[3]\n");
+	$prow->[3] = $dat->[1];
+	$prow->[4] = $dat->[2];
+	$prow->[5] = $dat->[3];
+	$prow->[6] = $dat->[4];
     }
 
     #
@@ -354,12 +360,14 @@ sub get_latlon {
 
 	    # XXX deal with PO boxes
 
+	    debug("looking up $person using $prow->[3], $prow->[4], $prow->[5], $prow->[6]\n");
 	    my @res = Geo::Coder::US->geocode("$prow->[3], $prow->[4], $prow->[5], $prow->[6]");
 	    if ($res[0]{'lat'}) {
 		$previous{$person}{'lat'} = $res[0]{'lat'};
 		$previous{$person}{'lon'} = $res[0]{'long'};
-		return ($res[0]{'lat'}, $res[0]{'long'},
-			$status || "Entered Physical Address");
+		debug("  result: $res[0]{'lat'}, $res[0]{'long'} $status\n");
+		$status = "Entered Physical Address" if (!$status);
+		return ($res[0]{'lat'}, $res[0]{'long'}, $status);
 	    } else {
 		debug("Warning: unknown lat/lon for address for $person\n   $prow->[3]\n");
 	    }
@@ -431,7 +439,7 @@ sub get_many {
 }
 
 sub debug {
-    if ($opts{'debug'}) {
+    if (1 || $opts{'debug'}) {
 	print STDERR @_;
     }
 }

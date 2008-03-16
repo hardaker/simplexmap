@@ -561,6 +561,28 @@ my %primaries =
      "",
      qw_label("Export:",""),
      qw_button('dokml','To Google Earth','dokml','KML', indent => 1),
+     qw_button('docsv','To Comma-Separated-Value','docsv','CSV', indent => 1),
+    ],
+    post_answers => sub {
+	if (qwparam('dokml')) {
+	    $_[0]->add_todos('exportkml');
+	}
+	if (qwparam('docsv')) {
+	    $_[0]->add_todos('exportcsv');
+	}
+	if (qwparam('dographviz')) {
+	    $_[0]->add_todos('showgraphviz');
+	}
+    },
+   },
+
+########################################
+# CSV
+#
+   'exportcsv' =>
+   { title => 'CSV Download',
+     questions => 
+     [
      { type => 'filedownload',
        name => 'getitcsv',
        linktext => 'Download CSV File',
@@ -579,15 +601,7 @@ my %primaries =
 	   $_[0]->print($$ref);
        }
      },
-    ],
-    post_answers => sub {
-	if (qwparam('dokml')) {
-	    $_[0]->add_todos('exportkml');
-	}
-	if (qwparam('dographviz')) {
-	    $_[0]->add_todos('showgraphviz');
-	}
-    },
+     ],
    },
 
 ########################################

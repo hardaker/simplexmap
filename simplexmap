@@ -214,67 +214,55 @@ my %primaries =
 	},
       },
       "",
-      {name => 'transmitloc',
-       text => "Transmit Location:",
-       refresh_on_change => 1,
-       type => 'menu',
-       labels => sub {
-	   my $eventiddef = get_many($getevents, qwparam('groupid'));
-
-	   my $rows = get_many($getlocations,
-			       qwparam('callsign'));
-	   my @values;
-	   my $havehome = 0;
-
-	   foreach my $row (@$rows) {
-	       $havehome = 1 if ($row->[1] ne 'Home');
-	       push @values, @$row;
-	   }
-	   push @values, qw(Home Home) if (!$havehome);
-	   push @values, 'Create New', 'Create New';
-	   return \@values;
-       },
-       default => sub {
-	   my $rows = get_one($getlocations,
-			      qwparam('callsign'));
-	   return ($rows ? $rows->[0] : 'Home');
-       },
-       refresh_on_change => 1,
-      },
       { type => 'dynamic',
 	values => sub {
 	    my $eventiddef = get_many($getevents, qwparam('groupid'));
 
-	    my $deflocation = qwparam('eventid') ||
-	      $eventiddef->[$#$eventiddef][0];
-
 	    my $locationid = qwparam('transmitloc');
 	    my $locinfo;
+	    my $eid;
+	    my $eventperson;
+
 	    if ($locationid =~ /^\d+$/) {
 		$locinfo = get_one($getlocationbyid,
 				   qwparam('transmitloc'),
 				   qwparam('callsign'));
+		$eid = qwparam('eventid');
+		$eventperson =
+		  get_one($geteventperson, $eid, qwparams(qw(callsign)));
 	    } else {
-		my $rows = get_one($getlocations,
-				   qwparam('callsign'));
-		if ($rows) {
+		# if we have an event id, use it to do a lookup
+		if (qwparam('eventid')) {
+		    $eid = qwparam('eventid');
+		} else {
+		    # else assume maximum eventid, which is the default
+		    # for the eventid.
+		    $eid = get_one_value_sql("select max(eventid) from events
+                                             where eventgroup = ?",
+					     qwparam('groupid'));
+		}
+
+		$eventperson =
+		  get_one($geteventperson, $eid, qwparam('callsign'));
+		
+		if ($eventperson) {
 		    $locinfo = get_one($getlocationbyid,
-				       $rows->[0],
+				       $eventperson->[2],
 				       qwparam('callsign'));
 		} else {
+		    # default to FCC data if all else fails
 		    my $fcc = get_fcc_data(qwparam('callsign'));
 		    $locinfo = ['','Address','','',
 				$fcc->[1], $fcc->[2], $fcc->[3], $fcc->[4]];
 		}
 	    }
-	    my $eventperson =
-	      get_one($geteventperson, $deflocation, qwparams(qw(callsign)));
 
 	    my $deflocinfo = "Power:      \nTranceiver: \nAntenna:    \n";
 	    if (!$eventperson) {
 		$eventperson = ['','','Home',$deflocinfo];
 	    }
 
+	    qwparam('transmitloc',$locinfo->[8]);
 	    qwparam('xmittype',$locinfo->[1]);
 	    qwparam('xmitlat',$locinfo->[2]);
 	    qwparam('xmitlon',$locinfo->[3]);
@@ -285,6 +273,32 @@ my %primaries =
 	    qwparam('xmitdetails',$eventperson->[3]);
 	    return
 	      [
+	       {name => 'transmitloc',
+		text => "Transmit Location:",
+		refresh_on_change => 1,
+		type => 'menu',
+		labels => sub {
+		    my $eventiddef = get_many($getevents, qwparam('groupid'));
+
+		    my $rows = get_many($getlocations,
+					qwparam('callsign'));
+		    my @values;
+		    my $havehome = 0;
+
+		    foreach my $row (@$rows) {
+			$havehome = 1 if ($row->[1] ne 'Home');
+			push @values, @$row;
+		    }
+		    push @values, qw(Home Home) if (!$havehome);
+		    push @values, 'Create New', 'Create New';
+		    return \@values;
+		},
+		default => sub {
+		    debug("def xmitloc: " . qwparam('transmitloc'));
+		    return qwparam('transmitloc');
+		},
+		refresh_on_change => 1,
+	       },
 	       qw_text('xmitname','Location Name:',
 		       doif => sub {qwparam('transmitloc') eq 'Create New'},
 		       default => 'New Name',
@@ -329,7 +343,6 @@ my %primaries =
 		 name => 'xmitdetails',
 		 width => 80,
 		 height => 5,
-		 indent => 1,
 		 text => 'Transmitting Details:',
 		 default => $eventperson->[3],
 	       }
@@ -344,7 +357,8 @@ my %primaries =
 # 	values => \@bands,
 # 	indent => 1,
 # 	default => '2M'},
-      qw_button('enter','Data:','bogus','Enter New Connections'),
+      "",
+      qw_button('enter','Event Data:','bogus','Enter New Connections'),
       qw_button('export','','bogus','Just Download The Results',
 		helpdesc => '(download images, google earth kml, etc)'),
       "",
@@ -412,6 +426,7 @@ my %primaries =
    #
    'groupadmin' =>
    { title => 'Group Administration',
+     introduction => 'This screen is only shown to group administrators (IE, you entered the group administration password to get here).',
      questions =>
      [
       qw_button('addmembers','Group Administration:','bogus',
@@ -446,7 +461,9 @@ my %primaries =
       qw_menu('eventband','Band:', \@bands, default => '2M'),
       qw_text('eventdate','Date:',helpdesc => '(optional)'),
       qw_text('eventtime','Time:',helpdesc => '(optional)'),
-      qw_textbox('eventdescr','Event Description:')
+      qw_textbox('eventdescr','Event Description:',
+		 width => 80,
+		 height => 5),
      ],
      actions => 
      [
@@ -459,7 +476,7 @@ my %primaries =
                                           from events");
 	  $newevent->execute(qwparams('groupid','eventname','eventband',
 				      'eventdate','eventtime','eventdescr')),
-	  return "OK";
+	  return "MSG:New event created";
       }],
    },
 

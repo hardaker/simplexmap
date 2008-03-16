@@ -535,8 +535,6 @@ my %primaries =
 	   my $str = new IO::String;
 	   export_csv($str);
 	   my $ref = $str->string_ref;
-	   print "out: $str $ref\n";
-	   print "out: $$ref\n";
 	   $_[0]->print($$ref);
        }
      },

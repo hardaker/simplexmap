@@ -430,14 +430,13 @@ my %primaries =
      questions =>
      [
       qw_button('addmembers','Group Administration:','bogus',
-		'Bulk add New Group Members',
-		doif => sub { return 1; }),
+		'Bulk add New Group Members'),
       qw_button('addevent','','bogus',
-		'Create a new event',
-		doif => sub { return 1; }),
+		'Create a new event'),
       qw_button('entermydata','','bogus',
-		'Enter my data for an event',
-		doif => sub { return 1; }),
+		'Enter my data for an event'),
+      qw_button('export','','bogus',
+ 		'Download event result data'),
      ],
      post_answers =>
      sub {
@@ -445,6 +444,8 @@ my %primaries =
 	     $_[0]->add_todos('addmembers');
 	 } elsif (qwparam('addevent')) {
 	     $_[0]->add_todos('addevent');
+	 } elsif (qwparam('export')) {
+	     $_[0]->add_todos('export');
 	 } else {
 	     $_[0]->add_todos('aboutevent');
 	 }
@@ -552,11 +553,22 @@ my %primaries =
      }
    },
 
+   ########################################
+   # EXPORT
+   #
    'export' =>
    {
     title => "Export Results",
     questions =>
     [
+     { type => 'dynamic',
+       values => sub {
+	   my $m = 
+	     get_menu('eventid','Event Name:',$getevents, qwparam('groupid'));
+	   return [$m,''];
+       },
+       doif => sub {qwparam('exportid') !~ /^\d+$/},
+     },
      qw_button('dographviz','Diagrams:','dographviz','Show Bubble Diagram'),
      "",
      qw_label("Export:",""),
@@ -612,6 +624,19 @@ my %primaries =
      title => "Export to KML",
      questions =>
      [
+#       { type => 'radio',
+# 	name => 'showlines',
+# 	text => 'Connections to show:',
+# 	labels => ['All',     	'All successful connections',
+# 		   'HeardBy', 	'Just connections heard by...',
+# 		   'SentFrom',  'Just connections sent from...',
+# 		  ],
+# 	default => 'All',
+# 	refresh_on_change => 1,
+#       },
+#       qw_text("connectioncallsign", "Callsign:", indent => 1,
+# 	      doif => sub { qwparam('showlines') eq 'HeardBy' ||
+# 			      qwparam('showlines') eq 'SentFrom' }),
       { type => 'radio',
 	name => 'groupby',
 	text => 'Group connection lines:',
@@ -624,7 +649,7 @@ my %primaries =
     post_answers => sub {
 	$_[0]->add_todos('realexportkml');
     },
-    },
+   },
 
    'realexportkml' =>
    {
@@ -640,6 +665,8 @@ my %primaries =
 	sub {
 	    my $opts = get_opts();
 	    $opts->{'b'} = qwparam('eventid');
+	    $opts->{'showlines'} = qwparam('showlines');
+	    $opts->{'connectioncallsign'} = qwparam('connectioncallsign');
 	    $opts->{'groupby'} = qwparam('groupby');
 	    init_simplexmap($opts);
 

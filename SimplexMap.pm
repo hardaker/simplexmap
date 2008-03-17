@@ -29,6 +29,8 @@ sub init_simplexmap {
     my ($opts) = @_;
     %opts = %$opts;
 
+    debug(Dumper(\%opts));
+
     # connection db setup
     if ($opts{'d'} && -f $opts{'d'}) {
 	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");

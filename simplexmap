@@ -140,7 +140,7 @@ my $updlocation = $dbh->prepare("update locations set
                                         locationaddress = ?,
                                         locationcity = ?,
                                         locationstate = ?,
-                                        locationzip)
+                                        locationzip = ?)
                                   where locationid = ?
                                     and locationperson = ?");
 
@@ -156,7 +156,8 @@ my %primaries =
    { title => 'Login',
      introduction => 'You must be a valid member of a group before you can continue',
      questions =>
-     [get_menu('groupid','Group:',$getgroups),
+     [get_menu('groupid','Group:',$getgroups,
+	       sub { qwpref('groupid') }),
       { type => 'hidetext',
 	name => 'grouppass',
 	text => 'Group Password:',
@@ -208,7 +209,11 @@ my %primaries =
       { type => 'dynamic',
 	values => sub {
 	    my $m = 
-	      get_menu('eventid','Event Name:',$getevents, qwparam('groupid'));
+	      get_menu('eventid','Event Name:',$getevents, 
+		       get_one_value_sql("select max(eventid) from events
+                                           where eventgroup = ?",
+					 qwparam('groupid')),
+		       qwparam('groupid'));
 	    $m->{'refresh_on_change'} = 1;
 	    return $m;
 	},
@@ -263,7 +268,7 @@ my %primaries =
 	    }
 
 	    qwparam('transmitloc',$locinfo->[8]);
-	    qwparam('xmittype',$locinfo->[1]);
+	    qwparam('xmittype',$locinfo->[1]) if (!qwparam('xmittype'));
 	    qwparam('xmitlat',$locinfo->[2]);
 	    qwparam('xmitlon',$locinfo->[3]);
 	    qwparam('xmitaddr',$locinfo->[4]);
@@ -327,6 +332,7 @@ my %primaries =
 	       { name => 'xmitlat',
 		 type => 'text',
 		 text => 'Latitude:',
+		 helpdesc => '(EG: N38 32.123)',
 		 default => sub { $locinfo->[2] || "N38 32.123"},
 		 indent => 1,
 		 doif => sub { qwparam('xmittype') eq 'Coordinates' },
@@ -334,6 +340,7 @@ my %primaries =
 	       { name => 'xmitlon',
 		 type => 'text',
 		 text => 'Longitude:',
+		 helpdesc => '(EG: W121 43.123)',
 		 default => sub { $locinfo->[3] || "W121 43.456"},
 		 indent => 1,
 		 doif => sub { qwparam('xmittype') eq 'Coordinates' },
@@ -564,7 +571,11 @@ my %primaries =
      { type => 'dynamic',
        values => sub {
 	   my $m = 
-	     get_menu('eventid','Event Name:',$getevents, qwparam('groupid'));
+	     get_menu('eventid','Event Name:',$getevents,
+		      get_one_value_sql("select max(eventid) from events
+                                           where eventgroup = ?",
+					qwparam('groupid')),
+		      qwparam('groupid'));
 	   return [$m,''];
        },
        doif => sub {qwparam('exportid') !~ /^\d+$/},
@@ -759,19 +770,20 @@ my %primaries =
       {type => 'table',
        indent => 1,
        values => sub {
-	   my $checkboxes = [];
-	   my $peoplerows = [];
-	   my $fivenine = [];
+	   my $checkboxes = [qw_label("Callsign:")];
+	   my $peoplerows = [qw_label("First Name:")];
+	   my $fivenine = [qw_label("Signal:")];
 	   my @rows;
-	   my $tc = -1;
-	   my $columns = 5;
+	   my $tc = 0;
+	   my $columns = 6;
 	   my $people = get_many($getgrouppeoplesorted, qwparam('groupid'));
 	   for (my $i = 0; $i <= $#$people; $i++) {
 	       next if ($done{$people->[$i][0]});
 	       $done{$people->[$i][0]} = 1;
 	       $tc++;
 	       if ($tc > 0 && $tc % $columns == 0) {
-		   push @rows, $checkboxes, $peoplerows, $fivenine;
+		   push @rows, $checkboxes, $peoplerows, $fivenine,
+		     [qw_label("------","")];
 		   $checkboxes = [];
 		   $fivenine = [];
 		   $peoplerows = [];
@@ -800,12 +812,13 @@ my %primaries =
       "",
       qw_label("Others:","Enter Other Callsigns you can hear:"),
       { type => 'table',
+	headers => [[qw(Number Callsign Signal)]],
 	values => sub {
 	    my $table;
 	    for (my $i = 1; $i <= 10; $i++) {
 		push @$table,
 		  [
-		   qw_label('',"$i:"),
+		   qw_label('',"$i"),
 		   qw_text('other_' . $i),
 		   qw_text('fivenine_' . $i,'',default => '59', size => 3),
 		   ];
@@ -878,6 +891,7 @@ sub get_menu {
     my $name = shift;
     my $text = shift;
     my $dbsth = shift;
+    my $default = shift;
     my @rest = @_;
 
     my $max = 1;
@@ -897,10 +911,7 @@ sub get_menu {
 	  qwparam('xxmax',$max);
 	  return \@ret;
       },
-      default => sub { get_one_value_sql("select max(eventid) from events
-                                           where eventgroup = ?",
-					 qwparam('groupid'));
-		       },
+      default => $default,
     };
 }
 

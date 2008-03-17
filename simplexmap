@@ -616,11 +616,21 @@ my %primaries =
 	name => 'groupby',
 	text => 'Group connection lines:',
 	default => 'From',
-	refresh_on_change => 1,
 	labels => ['From','From the caller',
 		   'To','From the listener',
 		  ],
       },
+     ],
+    post_answers => sub {
+	$_[0]->add_todos('realexportkml');
+    },
+    },
+
+   'realexportkml' =>
+   {
+    title => "The KML File Ready For Download",
+    questions =>
+    [
       { type => 'filedownload',
 	name => 'getit',
 	text => 'Download',
@@ -642,10 +652,10 @@ my %primaries =
       },
       { type => 'link',
 	linktext => 'Open in Google Maps',
-	url => sub { return "http://maps.google.com/?http://ham.hardakers.net/tmp/" . qwparam('outputfile') },
+	url => sub { return "http://maps.google.com/maps?f=q&hl=en&q=http:%2F%2Fham.hardakers.net%2Ftmp%2F" . qwparam('outputfile') },
       },
-     ],
-    },
+    ]
+   },
 
 ########################################
 # GraphViz

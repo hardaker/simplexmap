@@ -156,7 +156,14 @@ my %primaries =
    { title => 'Login',
      introduction => 'You must be a valid member of a group before you can continue',
      questions =>
-     [get_menu('groupid','Group:',$getgroups,
+     [
+      { type => 'link',
+	text => 'About:',
+	linktext => 'Minimial documentation',
+	url => 'http://ham.hardakers.net/simplexmap/',
+      },
+      "",
+      get_menu('groupid','Group:',$getgroups,
 	       sub { qwpref('groupid') }),
       { type => 'hidetext',
 	name => 'grouppass',

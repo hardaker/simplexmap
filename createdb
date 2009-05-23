@@ -20,7 +20,7 @@ if ($opts{'c'}) {
     unlink($opts{D});
 }
 
-my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{D}");
+my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
 
     $dbh->do("create table people
 (
@@ -28,7 +28,7 @@ my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts{D}");
       callsign                  char(10)
 )");
 
-    $dbh->do("insert into people values(1,'KI6NQW')");
+    $dbh->do("insert into people values(1,'WS6Z')");
 
     $dbh->do("create table groups
 (

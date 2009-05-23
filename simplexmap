@@ -19,17 +19,22 @@ sub get_opts {
       };
     $opts->{'H'} = '/home/hardaker/docs/ham/fcc/hamsigns'
       if (! -f $opts->{'H'});
+    $opts->{'d'} = '/home/hardaker/lib/simplexmap/hammap'
+      if (! -f $opts->{'d'});
     return $opts;
 };
 
 my %done;
 
+my $opts = get_opts();
+print Dumper($opts);
+
 my %bands;
 my @bands = qw(160M 80M 60M 40M 30M 20M 17M 15M 12M 10M 6M 2M 1.25M 70cm);
 map { $bands{$_} = 1; } @bands;
 
-my $dbh = DBI->connect("DBI:SQLite2:dbname=/tmp/hammap");
-my $dbh2 = DBI->connect("DBI:SQLite2:dbname=/home/hambot/hamsigns");
+my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts->{d}");
+my $dbh2 = DBI->connect("DBI:SQLite2:dbname=$opts->{H}");
 $dbh2 = DBI->connect("DBI:SQLite2:dbname=/users/hardaker/docs/ham/fcc/hamsigns")
   if (!$dbh2);
 
@@ -663,6 +668,28 @@ my %primaries =
 		   'To','From the listener',
 		  ],
       },
+      { type => 'table',
+	name => 'Coloring',
+	text => 'Coloring:',
+	values => sub {
+	    my @colors = qw(red green blue purple yellow marine);
+	    my @menuitems;
+	    foreach my $color (@colors) {
+		push @menuitems, "#y$color", $color;
+	    }
+	    my (@rows, $row);
+	    for (my $i = 0; $i <= 10; $i++) {
+		$row = [qw_text("color_per_$i",""),
+			{ type => 'menu',
+			  name => "color_val_$i",
+			  labels => \@menuitems,
+			  default => '#yblue',
+			}];
+		push @rows, $row;
+	    }
+	    return [\@rows];
+	}
+      },
      ],
     post_answers => sub {
 	$_[0]->add_todos('realexportkml');
@@ -686,6 +713,13 @@ my %primaries =
 	    $opts->{'showlines'} = qwparam('showlines');
 	    $opts->{'connectioncallsign'} = qwparam('connectioncallsign');
 	    $opts->{'groupby'} = qwparam('groupby');
+
+	    for (my $i = 0; $i <= 10; $i++) {
+		$opts->{'styles'}{uc(qwparam("color_per_$i"))} =
+		  qwparam("color_val_$i")
+		    if (qwparam("color_per_$i") ne '');
+	    }
+	    print Dumper($opts);
 	    init_simplexmap($opts);
 
 	    my $str = new IO::String;
@@ -828,7 +862,7 @@ my %primaries =
 		   qw_label('',"$i"),
 		   qw_text('other_' . $i),
 		   qw_text('fivenine_' . $i,'',default => '59', size => 3),
-		   ];
+		  ];
 	    }
 	    return [$table];
 	}

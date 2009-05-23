@@ -29,8 +29,6 @@ sub init_simplexmap {
     my ($opts) = @_;
     %opts = %$opts;
 
-    debug(Dumper(\%opts));
-
     # connection db setup
     if ($opts{'d'} && -f $opts{'d'}) {
 	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
@@ -69,7 +67,7 @@ sub init_simplexmap {
                                      city, state, zip_code
                                 from PUBACC_EN
                                where call_sign = ?");
-	$calldetails = $dbhsigns->prepare("select first_name, street_address, city, state, zip_code, frn, applicant_type_code, unique_system_identifier from PUBACC_EN where unique_system_identifier = ?");
+	$calldetails = $dbhsigns->prepare("select first_name, street_address, city, state, zip_code, frn, applicant_type_code, unique_system_identifier, last_name from PUBACC_EN where unique_system_identifier = ?");
 	$hdh = $dbhsigns->prepare("select license_status, grant_date, expired_date, unique_system_identifier from PUBACC_HD where call_sign = ? order by unique_system_identifier desc limit 1");
 	$vdh = $dbhsigns->prepare("select unique_system_identifier from PUBACC_VC where callsign_requested = ? order by unique_system_identifier desc limit 1");
     }
@@ -441,7 +439,7 @@ sub get_many {
 }
 
 sub debug {
-    if (1 || $opts{'debug'}) {
+    if ($opts{'debug'}) {
 	print STDERR @_;
     }
 }

@@ -1,12 +1,15 @@
 package SimplexMap;
 
+use lib qw(../perl/share/perl/5.8.8);
+use lib qw(../geoqo-1.01);
+
 use GeoDB::Utils;
 use Data::Dumper;
 use IO::File;
 use Data::Dumper;
 use Geo::Coder::US;
 use CGI qw(escapeHTML);
-use GraphViz;
+#use GraphViz;
 
 use strict;
 
@@ -31,7 +34,7 @@ sub init_simplexmap {
 
     # connection db setup
     if ($opts{'d'} && -f $opts{'d'}) {
-	$dbh = DBI->connect("DBI:SQLite2:dbname=$opts{d}");
+	$dbh = DBI->connect("DBI:SQLite:dbname=$opts{d}");
 	debug("opening $opts{d}\n");
 	$getconnection =
 	  $dbh->prepare("select receiver.callsign, sender.callsign,
@@ -61,7 +64,7 @@ sub init_simplexmap {
     Geo::Coder::US->set_db($opts{'g'}) if ($opts{'g'});
 
     if ($opts{'H'} && -f $opts{'H'}) {
-	$dbhsigns = DBI->connect("DBI:SQLite2:dbname=$opts{H}");
+	$dbhsigns = DBI->connect("DBI:SQLite:dbname=$opts{H}");
 	$getaddrh =
 	  $dbhsigns->prepare("select first_name, po_box, street_address, 
                                      city, state, zip_code

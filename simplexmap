@@ -1,42 +1,42 @@
 #!/usr/bin/perl
 
+use strict;
+use lib qw(../simplexmap);
+use lib qw(../perl/share/perl/5.8.8);
 use DBI;
 use strict;
-use QWizard;
-use QWizard::API;
-use QWizard::Storage::File;
-use strict;
-use lib qw(/home/hardaker/lib/simplexmap);
-use SimplexMap;
+require QWizard;
+import QWizard;
+require QWizard::API;
+import  QWizard::API;
+require QWizard::Storage::File;
+import  QWizard::Storage::File;
+require SimplexMap;
+import  SimplexMap;
 use IO::String;
 use Data::Dumper;
 
 sub get_opts {
     my $opts =
-      { d => '/tmp/hammap',
-	H => '/home/hambot/hamsigns',
-	g => '/home/hardaker/lib/simplexmap/tiger/mydb',
+      {
+        d => 'simdb',
+	H => 'hamsigns',
+	g => 'geocoder.db',
       };
-    $opts->{'H'} = '/home/hardaker/docs/ham/fcc/hamsigns'
-      if (! -f $opts->{'H'});
-    $opts->{'d'} = '/home/hardaker/lib/simplexmap/hammap'
-      if (! -f $opts->{'d'});
     return $opts;
 };
 
 my %done;
 
 my $opts = get_opts();
-print Dumper($opts);
+#print Dumper($opts);
 
 my %bands;
 my @bands = qw(160M 80M 60M 40M 30M 20M 17M 15M 12M 10M 6M 2M 1.25M 70cm);
 map { $bands{$_} = 1; } @bands;
 
-my $dbh = DBI->connect("DBI:SQLite2:dbname=$opts->{d}");
-my $dbh2 = DBI->connect("DBI:SQLite2:dbname=$opts->{H}");
-$dbh2 = DBI->connect("DBI:SQLite2:dbname=/users/hardaker/docs/ham/fcc/hamsigns")
-  if (!$dbh2);
+my $dbh = DBI->connect("DBI:SQLite:dbname=$opts->{d}");
+my $dbh2 = DBI->connect("DBI:SQLite:dbname=$opts->{H}");
 
 my $inspeople =  $dbh->prepare("insert into people (id, callsign) select max(id)+1, ? from people");
 
@@ -59,21 +59,21 @@ my $getgrouppeoplesorted =
 
 my $getpersonid = $dbh->prepare("select id from people where callsign = ?");
 
-my $getperson = $dbh->prepare("select eventpersonlat, eventpersonlon
-                                 from eventmembers
-                            left join people on eventperson = id
-                                where callsign = ?");
-my $insconnection = $dbh->prepare("insert into connections
-                                               (listener, heard, band)
-                                               values(?,?,?)");
-my $getconnection = $dbh->prepare("select heard from connections
-                                    where listener = ?
-                                      and heard = ?
-                                      and band = ?");
-my $delconnection = $dbh->prepare("delete from connections
-                                    where listener = ?
-                                      and heard = ?
-                                      and band = ?");
+# my $getperson = $dbh->prepare("select eventpersonlat, eventpersonlon
+#                                  from eventmembers
+#                             left join people on eventperson = id
+#                                 where callsign = ?");
+# my $insconnection = $dbh->prepare("insert into connections
+#                                                (listener, heard, band)
+#                                                values(?,?,?)");
+# my $getconnection = $dbh->prepare("select heard from connections
+#                                     where listener = ?
+#                                       and heard = ?
+#                                       and band = ?");
+# my $delconnection = $dbh->prepare("delete from connections
+#                                     where listener = ?
+#                                       and heard = ?
+#                                       and band = ?");
 
 my $geteventperson = $dbh->prepare("select eventid, eventperson,
                                            eventpersonlocation,
@@ -145,7 +145,7 @@ my $updlocation = $dbh->prepare("update locations set
                                         locationaddress = ?,
                                         locationcity = ?,
                                         locationstate = ?,
-                                        locationzip = ?)
+                                        locationzip = ?
                                   where locationid = ?
                                     and locationperson = ?");
 
@@ -190,7 +190,8 @@ my %primaries =
 	      indent => 1,
 	      default => sub {
 		  return uc(qwpref('callsign')) if (qwpref('callsign'));
-	      }
+	      },
+	      check_value => \&qw_required_field,
 	     ),
       qw_hidden('no_confirm',1),
      ],
@@ -628,12 +629,14 @@ my %primaries =
        sub {
 	   my $opts = get_opts();
 	   $opts->{'b'} = qwparam('eventid');
+	   $opts->{'debug'} = 1;
 	   init_simplexmap($opts);
 
 	   my $str = new IO::String;
 	   export_csv($str);
 	   my $ref = $str->string_ref;
 	   $_[0]->print($$ref);
+	   chmod 0644, "tmp/$_[5]";
        }
      },
      ],
@@ -703,11 +706,12 @@ my %primaries =
     [
       { type => 'filedownload',
 	name => 'getit',
-	text => 'Download',
+	text => sub { print STDERR "mark1\n"; return 'Download'} ,
 	linktext => 'Download KML File',
 	extension => '.kml',
 	datafn => 
 	sub {
+	    print STDERR "marker\n";
 	    my $opts = get_opts();
 	    $opts->{'b'} = qwparam('eventid');
 	    $opts->{'showlines'} = qwparam('showlines');
@@ -719,7 +723,7 @@ my %primaries =
 		  qwparam("color_val_$i")
 		    if (qwparam("color_per_$i") ne '');
 	    }
-	    print Dumper($opts);
+#	    print Dumper($opts);
 	    init_simplexmap($opts);
 
 	    my $str = new IO::String;
@@ -731,7 +735,11 @@ my %primaries =
       },
       { type => 'link',
 	linktext => 'Open in Google Maps',
-	url => sub { return "http://maps.google.com/maps?f=q&hl=en&q=http:%2F%2Fham.hardakers.net%2Ftmp%2F" . qwparam('outputfile') },
+	url => sub {
+#	    print STDERR "out: " . qwparam('outputfile') . "\n";
+	    chmod 0644, "tmp/" . qwparam('outputfile');
+	    return "http://maps.google.com/maps?f=q&hl=en&q=http:%2F%2Fsimplexmap.hamtools.org%2Ftmp%2F" . qwparam('outputfile');
+	},
       },
     ]
    },
@@ -785,6 +793,7 @@ my %primaries =
                                            where eventid = ?",
 					 qwparam('eventid'));
 		   }),
+      qw_paragraph("You:",sub { qwparam('callsign') } , indent => 1),
       qw_paragraph("Description:",sub {
 		       get_one_value_sql("select eventdescription from events
                                            where eventid = ?",
@@ -874,6 +883,8 @@ my %primaries =
      sub {
 	 my $count = 0;
 	 my $people = get_many($getgrouppeople, qwparam('groupid'));
+	 debug("starting with my callsign: " . qwparam('callsign'));
+	 return if (qwparam('callsign') eq '');
 	 debug("starting: $#$people\n");
 	 for (my $i = 0; $i <= $#$people; $i++) {
 	     if (qwparam("heard_$people->[$i][0]")) {
@@ -917,16 +928,16 @@ my %primaries =
   );
 
 my %previous;
-sub get_latlon {
-    my $person = shift;
+# sub get_latlon {
+#     my $person = shift;
 
-    my ($lat, $lon);
-    $getperson->execute($person);
-    my $prow = $getperson->fetchrow_arrayref();
-    ($lat, $lon) = ($prow->[0], $prow->[1]) if ($prow);
-    $getperson->finish();
-    return ($lat, $lon);
-}
+#     my ($lat, $lon);
+#     $getperson->execute($person);
+#     my $prow = $getperson->fetchrow_arrayref();
+#     ($lat, $lon) = ($prow->[0], $prow->[1]) if ($prow);
+#     $getperson->finish();
+#     return ($lat, $lon);
+# }
 
 sub get_menu {
     my $name = shift;
@@ -1102,9 +1113,9 @@ if (ref($qw->{'generator'}) !~ /HTML/) {
       new QWizard::Storage::File(file => $ENV{'HOME'} . "/.simplexmaprc");
     $qw->{'generator'}{'prefstore'}->load_data();
 } else {
-    $qw->{'generator'}{'tmpdir'} = "/var/www/ham/tmp";
-    $qw->{'generator'}{'imgpath'} = "/tmp/";
-    $qw->{'generator'}{'datapath'} = "/tmp/";
+    $qw->{'generator'}{'tmpdir'} = "tmp";
+    $qw->{'generator'}{'imgpath'} = "tmp";
+    $qw->{'generator'}{'datapath'} = "tmp/";
 }
 $qw->magic('pickgroup');
 

@@ -2,7 +2,33 @@ WS6Z's Simplex Mapping System
 
 * Project Details
 
-  http://hamtools.org/simplexmap
+  http://simplexmap.hamtools.org/docs/
+
+  Note that this isn't the easiest set of software to get up and
+  running, and these instructions aren't 100% complete.  But it's
+  getting easier and the instructions are getting better.
+
+  I'll grant anyone who needs it a group account on the [[http://simplexmap.hamtools.org/][public server]]
+  if you'd rather do that than install the software on your own server.
+  [I recommend you start with using the public one at least]
+
+* Required Software
+
+*** Perl Modules
+
+    + Getopt::GUI::Long (it's possible to make this optional; let me know)
+    + DBI
+    + DBD::SQLite
+    + Geo::Coder::US
+    + GeoDB::Utils (Get it from geoqo.org)
+    + GraphViz
+    + IO::String
+    + [[http://search.cpan.org/~hardaker/Ham-Callsign-0.31/][Ham::Callsign]]
+
+*** Software
+
+    + ImageMagick
+    + graphviz
 
 * Creating the initial database
 
@@ -17,3 +43,29 @@ WS6Z's Simplex Mapping System
   group.  Obviously you should change the passwords to something
   specific to you.  And it's unlikely you'll want to use my callsign :-)
 
+* Installing the cgi-script that drives it all
+
+  + modify the simplexmap program to point to your data.
+    Specifically, in $opts:
+
+    + set the 'd' option to the full path file for your database created above
+    + set the 'H' option to the FCC callsign database created with 'cs'
+      (you can grab a copy from [[http://www.hamtools.org/dbs/hamsigns]])
+      (size: 526M)
+    + set the 'g' option to the tiger db file
+      (you can grab it from [[http://simplexmap.hamtools.org/geocoder.db]])
+      (size: 884M)
+
+  + cp simplexmap /your/cgi-bin
+
+*** Creating your own Tiger DB file
+
+    XXX
+
+*** Creating your own FCC database file
+
+    XXX
+
+* Contacting the author
+
+  Wes Hardaker < wes & ws6z.com >

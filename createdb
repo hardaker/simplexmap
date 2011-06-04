@@ -16,7 +16,7 @@ GetOptions(\%opts,
 	   ["g|initial-group=s", "Initial group"],
 	   ["p|initial-group-password=s", "Initial Group Password"],
 	   ["P|initial-group-admin-password=s", "Initial Group Admin Password"],
-	   ["D|db=s","DB File"],
+	   ["D|db=s","DB File (defaults to 'hammap')"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
@@ -41,7 +41,7 @@ my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
       callsign                  char(10)
 )");
 
-    $dbh->do("insert into people values(1,'WS6Z')");
+    $dbh->do("insert into people values(1, '$opts{'u'}')");
 
     $dbh->do("create table groups
 (
@@ -51,7 +51,7 @@ my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
       adminpass                 char(64)
 )");
 
-    $dbh->do("insert into groups values(1,'Yolo ARES','generalpassword','adminpassword')");
+    $dbh->do("insert into groups values(1,'$opts{'g'}','$opts{'p'}','$opts{'P'}')");
 
     $dbh->do("create table members
 (

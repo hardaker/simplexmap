@@ -12,9 +12,22 @@ my $sth;
 
 GetOptions(\%opts,
 	   ["c|create-dbs", "Drop and recreate the tables"],
+	   ["u|initial-user=s", "Initial user"],
+	   ["g|initial-group=s", "Initial group"],
+	   ["p|initial-group-password=s", "Initial Group Password"],
+	   ["P|initial-group-admin-password=s", "Initial Group Admin Password"],
 	   ["D|db=s","DB File"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
+
+if (!exists($opts{'u'}) ||
+    !exists($opts{'g'}) ||
+    !exists($opts{'p'}) ||
+    !exists($opts{'P'})) {
+    print STDERR "-u, -g, -p and -P are all required\n";
+    exit 1;
+}
+
 
 if ($opts{'c'}) {
     unlink($opts{D});

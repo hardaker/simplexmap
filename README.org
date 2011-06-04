@@ -1,0 +1,19 @@
+WS6Z's Simplex Mapping System
+
+* Project Details
+
+  http://hamtools.org/simplexmap
+
+* Creating the initial database
+
+  To create the initial database, which is stored in an SQLite file,
+  run the createdb script:
+
+    ./createdb -d mydb -u WS6Z -g mygroup -p sharedpassword -P myadminpassword
+
+  This will create the 'mydb' file and populate it with the minimal
+  required data: a single user (WS6Z) and a single group (mygroup)
+  with both a shared password and a administrative password for the
+  group.  Obviously you should change the passwords to something
+  specific to you.  And it's unlikely you'll want to use my callsign :-)
+

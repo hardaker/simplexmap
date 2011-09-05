@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+
+use DBI;
+use strict;
+
+use Getopt::GUI::Long;
+Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
+
+use lib qw(../simplexmap);
+use lib qw(../perl/share/perl/5.8.8);
+require SimplexMap;
+import  SimplexMap;
+
+my %opts = ('d' => 'FCC-data',
+	    'D' => 'hammap');
+my $sth;
+
+GetOptions(\%opts,
+	   ["u|user=s", "user"],
+	   ["g|group=s", "group"],
+	   ["p|group-password=s", "Initial Group Password"],
+	   ["P|group-admin-password=s", "Initial Group Admin Password"],
+	   ["D|db=s","DB File (defaults to 'hammap')"],
+	   ["nogui", "Don't launch using a gui"],
+	  ) || die;
+
+if (!exists($opts{'u'}) ||
+    !exists($opts{'g'}) ||
+    !exists($opts{'p'}) ||
+    !exists($opts{'P'})) {
+    print STDERR "-u, -g, -p and -P are all required\n";
+    exit 1;
+}
+
+
+my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
+
+$dbh->do("insert into people (id, callsign) select max(id)+1, ? from people",
+	 undef, $opts{u});
+
+my $find_person = $dbh->prepare("select id from people where callsign = ?");
+my $personid = get_one_value($find_person, $opts{'u'});
+
+$dbh->do("insert into groups (id, name, password, adminpass) select max(id)+1, ?, ?, ? from groups", undef, $opts{'g'}, $opts{'p'}, $opts{'P'});
+
+my $find_group = $dbh->prepare("select id from groups where name = ?");
+my $groupid = get_one_value($find_group, $opts{'g'});
+
+$dbh->do("insert into members (groupid, groupperson) values(?, ?)", undef, 
+	 $groupid, $personid);
+
+#$dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '')");
+
+#$dbh->do("insert into locations (locationid, locationperson, locationname,
+#                                 locationtype, locationaddress,
+#                                 locationcity, locationstate, locationzip)
+#                      values(1,1,'Home','Address','4240 Arroyo Ave',
+#                             'Davis', 'CA',95616)");

@@ -1,0 +1,21 @@
+  <div class="row">
+    <div class="col-md-12" role="main">
+	  <div class="panel panel-default">
+		<div class="panel-heading">
+		  <p>Login</p>
+		</div>
+		<div class="panel-body">
+		  <form action="/login" method="post">
+			<div class="input-group">
+              <span class="input-group-addon">Callsign</span>
+              <input type="text" class="form-control" placeholder="your callsign"/>
+			</div>
+			<div class="input-group">
+              <span class="input-group-addon">Password</span>
+              <input type="password" class="form-control" placeholder=""/>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
+  </div>

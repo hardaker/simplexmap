@@ -2,7 +2,7 @@
 <html lange="en">
   <head>
     <title>DNS-Sentinel</title>
-    <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/css/simplexmap.css">
     <link rel="shortcut icon" href="/favicon.ico">
 
@@ -15,9 +15,34 @@
     <script type="text/javascript" src="/js/jquery.js"></script>
   </head>
 <body>
-<% content %>
-<div id="footer">
-Simplex Mapping System by WS6Z
+
+<div class="container">
+     <nav class="navbar navbar-inverse" role="navigation">
+      <div class="container-fluid">
+         <div class="navbar-header">
+           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+             <span class="sr-only">Toggle navigation</span>
+             <span class="icon-bar"></span>
+             <span class="icon-bar"></span>
+             <span class="icon-bar"></span>
+           </button>
+           <a class="navbar-brand" href="/">Simplex Mapping Tool</a>
+         </div>
+
+         <div id="navbar" class="collapse navbar-collapse">
+           <ul class="nav navbar-nav">
+             <li><a href="/help.html">Help</a></li>
+           </ul>
+         </div>
+      </div>
+     </nav>
+     <% content %>
+
+     <hr />
+     <div id="footer">
+       Created by <a href="http://www.ws6z.com/">WS6Z</a>
+     </div>
 </div>
+
 </body>
 </html>

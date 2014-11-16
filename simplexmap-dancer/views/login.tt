@@ -5,15 +5,18 @@
 		  <p>Login</p>
 		</div>
 		<div class="panel-body">
+		  <% IF failedNote %><p class="error"><% failedNote %></p><% END %>
 		  <form action="/login" method="post">
 			<div class="input-group">
               <span class="input-group-addon">Callsign</span>
-              <input type="text" class="form-control" placeholder="your callsign"/>
+              <input name="login" type="text" class="form-control" placeholder="your callsign"/>
 			</div>
 			<div class="input-group">
               <span class="input-group-addon">Password</span>
-              <input type="password" class="form-control" placeholder=""/>
+              <input name="pass" type="password" class="form-control" placeholder=""/>
 			</div>
+			<br />
+			<p><button type="submit" class="btn btn-primary">Login</button></p>
 		  </form>
 		</div>
 	  </div>

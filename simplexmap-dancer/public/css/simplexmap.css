@@ -4,3 +4,7 @@
 .input-group {
 	width: 50%;
 }
+.error {
+	font-size: 1.3em;
+	color: #c00;
+}

@@ -7,41 +7,40 @@ use Getopt::GUI::Long;
 Getopt::GUI::Long::Configure(qw(display_help no_ignore_case capture_output));
 
 my %opts = ('d' => 'FCC-data',
-	    'D' => 'hammap');
+            'D' => 'simplexmap');
 my $sth;
 
 GetOptions(\%opts,
 	   ["c|create-dbs", "Drop and recreate the tables"],
-	   ["u|initial-user=s", "Initial user"],
-	   ["g|initial-group=s", "Initial group"],
-	   ["p|initial-group-password=s", "Initial Group Password"],
-	   ["P|initial-group-admin-password=s", "Initial Group Admin Password"],
-	   ["D|db=s","DB File (defaults to 'hammap')"],
+	   ["D|db=s","DB Name (defaults to 'simplexmap')"],
+       ["U|db-user=s", "DB User"],
+       ["P|db-pass=s", "DB Password"],
 	   ["nogui", "Don't launch using a gui"],
 	  ) || die;
 
-if (!exists($opts{'u'}) ||
-    !exists($opts{'g'}) ||
-    !exists($opts{'p'}) ||
+if (!exists($opts{'U'}) ||
     !exists($opts{'P'})) {
-    print STDERR "-u, -g, -p and -P are all required\n";
+    print STDERR "-U and -P are required\n";
     exit 1;
 }
 
+#my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
+my $dbh = DBI->connect("DBI:mysql:database=$opts{'D'};host=localhost", $opts{'U'}, $opts{'P'});
 
 if ($opts{'c'}) {
-    unlink($opts{D});
+	foreach my $table (qw(connections eventmembers events groups locations members people)) {
+		$dbh->do("drop table " . $table);
+	}
 }
 
-my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
+
 
     $dbh->do("create table people
 (
       id                        int,
-      callsign                  char(10)
+      callsign                  char(10),
+      password                  char(64)
 )");
-
-    $dbh->do("insert into people values(1, '$opts{'u'}')");
 
     $dbh->do("create table groups
 (
@@ -51,15 +50,11 @@ my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
       adminpass                 char(64)
 )");
 
-    $dbh->do("insert into groups values(1,'$opts{'g'}','$opts{'p'}','$opts{'P'}')");
-
     $dbh->do("create table members
 (
       groupid                   int,
       groupperson               int
 )");
-
-    $dbh->do("insert into members values(1,1)");
 
     $dbh->do("create table events
 (
@@ -71,8 +66,6 @@ my $dbh = DBI->connect("DBI:SQLite:dbname=$opts{D}");
       eventstart                varchar(64),
       eventdescription          varchar(4096)
 )");
-
-$dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '')");
 
     $dbh->do("create table locations
 (
@@ -87,12 +80,6 @@ $dbh->do("insert into events values(1,1,'Test Net','2M','2008/03/02','7:30PM', '
       locationstate       varchar(4096),
       locationzip         int
 )");
-
-    $dbh->do("insert into locations (locationid, locationperson, locationname,
-                                     locationtype, locationaddress,
-                                     locationcity, locationstate, locationzip)
-                          values(1,1,'Home','Address','4240 Arroyo Ave',
-                                 'Davis', 'CA',95616)");
 
     $dbh->do("create table eventmembers
 (

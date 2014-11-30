@@ -28,3 +28,17 @@ engines:
 # eventually should be a real database!
 session: YAML
 session_dir: /tmp/simplexmap-sessions
+
+plugins:
+    Database:
+        driver:        'mysql'
+        database:      'simplexmap'
+        log_queries:   1
+        host:          'localhost'
+#        username:      'simplexmap'
+#        password:      'radiomapper'
+        username:      'root'
+        password:      'sqlpass'
+        on_connect_do: "SET SQL_MODE='TRADITIONAL'"
+
+serializer: JSON

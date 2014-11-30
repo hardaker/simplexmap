@@ -6,19 +6,21 @@
 		</div>
 		<div class="panel-body">
 		  <% IF failedNote %><p class="error"><% failedNote %></p><% END %>
+		  <% IF notvalidated %><p class="error">Account email not validated; Please check your email for your validation link before logging in again.</p><% END %>
 		  <form action="/login" method="post">
 			<div class="input-group">
               <span class="input-group-addon">Callsign</span>
-              <input name="login" type="text" class="form-control" placeholder="your callsign"/>
+              <input name="callsign" type="text" class="form-control" placeholder="your callsign"/>
 			</div>
 			<div class="input-group">
               <span class="input-group-addon">Password</span>
-              <input name="pass" type="password" class="form-control" placeholder=""/>
+              <input name="password" type="password" class="form-control" placeholder=""/>
 			</div>
 			<br />
 			<p><button type="submit" class="btn btn-primary">Login</button></p>
 		  </form>
 		</div>
 	  </div>
+	  <p>New here?  <a href="/signup">Create an account</a></p>
 	</div>
   </div>

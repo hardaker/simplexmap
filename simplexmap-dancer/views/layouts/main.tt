@@ -30,9 +30,9 @@
          </div>
 
          <div id="navbar" class="collapse navbar-collapse">
-           <ul class="nav navbar-nav">
-             <li><a href="/help.html" class="pull-right">Help</a></li>
-			 <% IF session.callsign %><% session.callsign %><% END %>
+           <ul class="nav navbar-nav navbar-right">
+             <li><a href="/help.html">Help</a></li>
+			 <% IF session.callsign %><li><a href="#"><% session.callsign %></a></li><% END %>
            </ul>
          </div>
       </div>

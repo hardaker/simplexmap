@@ -11,12 +11,14 @@
             </div>
             <div class="panel-body">
 			  <table class="table">
-				<tr> <th>Name </th> <th>Description </th> <th>Action</th></tr>
+				<tr> <th>Name </th> <th>Latitude </th> <th>Longitude </th> <th>Action</th></tr>
 				<% FOREACH item IN list %>
 				<tr>
 				  <td><% item.locationname %>
 				  </td>
-				  <td><% item.locationtype %>
+				  <td><% item.locationlat %>
+				  </td>
+				  <td><% item.locationlon %>
 				  </td>
 				  <td>x
 				  </td>

@@ -5,24 +5,24 @@
 		<p>Add a new station</p>
       </div>
       <div class="panel-body">
-		<form action="/station" method="post">
+		<form action="/stations" method="post">
 		  <div class="input-group">
             <span class="input-group-addon">A Name For It</span>
 			<input name="identifier" type="text" class="form-control" placeholder="my home"/>
+			<% IF messages.identifier %><p class="error"><% messages.identifier %></p><% END %>
 		  </div>
 		  <div class="input-group">
             <span class="input-group-addon">Latitude (North = +, South = -)</span>
-			<input id="latitude" name="latitute" type="text" class="form-control" placeholder="38.55"/>
+			<input id="latitude" name="latitude" type="text" class="form-control" placeholder="38.55"/>
+			<% IF messages.latitute %><p class="error"><% messages.latitude %></p><% END %>
 		  </div>
 		  <div class="input-group">
             <span class="input-group-addon">Longitude (East = +, West = -)</span>
 			<input id="longitude" name="longitude" type="text" class="form-control" placeholder="-121.7"/>
+			<% IF messages.longitude %><p class="error"><% messages.longitude %></p><% END %>
 		  </div>
 		  <br />
-		  <a type="button" class="btn btn-primary" href="/station">
-			Create This Station
-		  </a>
-
+		  <button type="submit" class="btn btn-primary">Create This Station</button>
 		</form>
 	  </div>
 

@@ -11,4 +11,8 @@ get '/stations' => sub {
 	template 'stations' => { list => $list }; 
 };
 
+get '/stations/new' => sub {
+	template 'stations/new';
+};
+
 1;

@@ -12,11 +12,11 @@
 		  </div>
 		  <div class="input-group">
             <span class="input-group-addon">Latitude (North = +, South = -)</span>
-			<input name="latituted" type="text" class="form-control" placeholder="38.55"/>
+			<input id="latitude" name="latitute" type="text" class="form-control" placeholder="38.55"/>
 		  </div>
 		  <div class="input-group">
             <span class="input-group-addon">Longitude (East = +, West = -)</span>
-			<input name="longitude" type="text" class="form-control" placeholder="-121.7"/>
+			<input id="longitude" name="longitude" type="text" class="form-control" placeholder="-121.7"/>
 		  </div>
 		</form>
 	  </div>
@@ -35,11 +35,23 @@
 		<script>
 		 $(document).ready(function() {
 		   var map = L.map('map').setView([38.55, -121.7], 13);
+
+		   // create the map 
 		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png',
 					   {
 			 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
 			 maxZoom: 18
 					   }).addTo(map);
+
+		   // create a function to handle clicks and bind it
+		   function onMapClick(e) {
+			 console.log("you clicked");
+			 console.log(e.latlng);
+			 $('#latitude').val(e.latlng.lat);
+			 $('#longitude').val(e.latlng.lng);
+		   }
+		   map.on('click', onMapClick);
+
 		 });
 		</script>
 

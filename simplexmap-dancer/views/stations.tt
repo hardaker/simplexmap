@@ -2,7 +2,12 @@
     <div class="col-md-12" role="main">
         <div class="panel panel-default">
             <div class="panel-heading">
-			  <p>Your Current Stations</p>
+			  Your Current Stations
+			  <a class="button" href="/stations/new">
+				<span class="glyphicon glyphicon-plus pull-right"
+					  data-toggle="tooltip" data-toggle="tooltip"
+					  title="Create a new station"></span>
+			  </a>
             </div>
             <div class="panel-body">
 			  <table class="table">

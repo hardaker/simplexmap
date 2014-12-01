@@ -37,7 +37,7 @@ if ($opts{'c'}) {
 
     $dbh->do("create table people
 (
-      id                        int,
+      id                        int(11) NOT NULL auto_increment primary key,
       callsign                  varchar(10),
       firstname                 varchar(64),
       lastname                  varchar(64),
@@ -50,7 +50,7 @@ if ($opts{'c'}) {
 
     $dbh->do("create table groups
 (
-      id                        int,
+      id                        int(11) NOT NULL auto_increment primary key,
       name                      varchar(64),
       password                  varchar(64),
       adminpass                 varchar(64)
@@ -64,7 +64,7 @@ if ($opts{'c'}) {
 
     $dbh->do("create table events
 (
-      eventid                   int,
+      eventid                   int(11) NOT NULL auto_increment primary key,
       eventgroup                int,
       eventname                 varchar(64),
       eventband                 varchar(64),
@@ -75,7 +75,7 @@ if ($opts{'c'}) {
 
     $dbh->do("create table locations
 (
-      locationid          int,
+      locationid          int(11) NOT NULL auto_increment primary key,
       locationperson      int,
       locationname        varchar(64),
       locationtype        varchar(64),

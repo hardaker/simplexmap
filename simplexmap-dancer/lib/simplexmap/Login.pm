@@ -53,7 +53,9 @@ post '/login' => sub {
 		}
 		session user => $row->{'id'};
 		session callsign => uc(param('callsign'));
+		$loginh->finish;
 	} else {
+		$loginh->finish;
 		debug("user not found: " . uc(param('callsign')));
 		return redirect '/login?failed=1';
 	}

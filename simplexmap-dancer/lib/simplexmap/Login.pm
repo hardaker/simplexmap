@@ -17,9 +17,6 @@ hook 'before' => sub {
 	    request->path_info !~ m{^/signup}) {
 		var requested_path => request->path_info;
 		request->path_info('/login');
-	} else {
-		my $user = session('user') || "none";
-		my $sensor = session('sensor') || "none";
 	}
 };
 
@@ -106,7 +103,7 @@ post '/signup' => sub {
                                                   values(?, ?, ?, ?, ?, ?, ?)");
 	my $salt = get_salt();
 	my $verifyCode = get_salt();
-	$insh->execute($vals->{'callsign'}, $vals->{'firstsname'}, $vals->{'lastname'},
+	$insh->execute($vals->{'callsign'}, $vals->{'firstname'}, $vals->{'lastname'},
 	               $salt, get_salted_password($salt, $vals->{'password'}),
 	               $vals->{'email'}, $verifyCode);
 

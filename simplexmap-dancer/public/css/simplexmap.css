@@ -8,3 +8,12 @@
 	font-size: 1.3em;
 	color: #c00;
 }
+
+.input-group-addon {
+	width: 20em;
+	text-align: left;
+}
+
+.input-group {
+	width: 80%;
+}

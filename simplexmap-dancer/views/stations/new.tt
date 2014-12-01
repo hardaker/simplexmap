@@ -12,15 +12,27 @@
 			<% IF messages.identifier %><p class="error"><% messages.identifier %></p><% END %>
 		  </div>
 		  <div class="input-group">
-            <span class="input-group-addon">Latitude (North = +, South = -)</span>
+            <span class="input-group-addon">Latitude <em>(North = +, South = -)</em></span>
 			<input id="latitude" name="latitude" type="text" class="form-control" placeholder="38.55"/>
 			<% IF messages.latitute %><p class="error"><% messages.latitude %></p><% END %>
 		  </div>
 		  <div class="input-group">
-            <span class="input-group-addon">Longitude (East = +, West = -)</span>
+            <span class="input-group-addon">Longitude <em>(East = +, West = -)</em></span>
 			<input id="longitude" name="longitude" type="text" class="form-control" placeholder="-121.7"/>
 			<% IF messages.longitude %><p class="error"><% messages.longitude %></p><% END %>
 		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">Visibility</span>
+			<select>
+			  <option value="private">Private</option>
+			  <option value="friends">Friends</option>
+			  <option value="groups">Friends and Groups</option>
+			  <option value="friendsandgroups">Frinds and Groups</option>
+			  <option value="friendsandgroups" selected>Public</option>
+			</select>
+		  </div>
+
 		  <br />
 		  <button type="submit" class="btn btn-primary">Create This Station</button>
 		</form>

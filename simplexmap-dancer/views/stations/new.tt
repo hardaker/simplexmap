@@ -18,8 +18,15 @@
             <span class="input-group-addon">Longitude (East = +, West = -)</span>
 			<input id="longitude" name="longitude" type="text" class="form-control" placeholder="-121.7"/>
 		  </div>
+		  <br />
+		  <a type="button" class="btn btn-primary" href="/station">
+			Create This Station
+		  </a>
+
 		</form>
 	  </div>
+
+
 	</div>
     <div class="panel panel-default">
         <div class="panel-heading">
@@ -29,12 +36,17 @@
         <div class="panel-body">
             <div id="map" class="map" style="height: 400px;">
             </div>
+			<p><em>Click on the map or drag the marker to set the latitude and longitude coordinates</em></p>
         </div>
     </div>
   </div>
 		<script>
 		 $(document).ready(function() {
-		   var map = L.map('map').setView([38.55, -121.7], 13);
+
+		   var defaultLat = 38.55;
+		   var defaultLon = -121.7;
+
+		   var map = L.map('map').setView([defaultLat, defaultLon], 13);
 
 		   // create the map 
 		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png',
@@ -43,12 +55,24 @@
 			 maxZoom: 18
 					   }).addTo(map);
 
+		   // create a marker
+		   var marker = L.marker([defaultLat, defaultLon], { 'draggable': true })
+						 .addTo(map);
+		   marker.on('dragend', onDragMarker);
+
+		   function onDragMarker(e) {
+			 var me = e.target;
+			 var where = marker.getLatLng();
+			 console.log(where);
+			 $('#latitude').val(where.lat);
+			 $('#longitude').val(where.lng);
+		   }
+
 		   // create a function to handle clicks and bind it
 		   function onMapClick(e) {
-			 console.log("you clicked");
-			 console.log(e.latlng);
 			 $('#latitude').val(e.latlng.lat);
 			 $('#longitude').val(e.latlng.lng);
+			 marker.setLatLng(e.latlng);
 		   }
 		   map.on('click', onMapClick);
 

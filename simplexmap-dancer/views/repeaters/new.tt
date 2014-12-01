@@ -1,0 +1,95 @@
+<div class="row">
+  <div class="col-md-12" role="main">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+		<p>Add a new station</p>
+      </div>
+      <div class="panel-body">
+		<form action="/repeaters" method="post">
+		  <div class="input-group">
+            <span class="input-group-addon">A Name For It</span>
+			<input name="identifier" type="text" class="form-control" placeholder="my home"/>
+			<% IF messages.identifier %><p class="error"><% messages.identifier %></p><% END %>
+		  </div>
+		  <div class="input-group">
+            <span class="input-group-addon">Callsign</span>
+			<input name="callsign" type="text" class="form-control" placeholder="my home"/>
+			<% IF messages.callsign %><p class="error"><% messages.callsign %></p><% END %>
+		  </div>
+		  <div class="input-group">
+            <span class="input-group-addon">Latitude <em>(North = +, South = -)</em></span>
+			<input id="latitude" name="latitude" type="text" class="form-control" placeholder="38.55"/>
+			<% IF messages.latitute %><p class="error"><% messages.latitude %></p><% END %>
+		  </div>
+		  <div class="input-group">
+            <span class="input-group-addon">Longitude <em>(East = +, West = -)</em></span>
+			<input id="longitude" name="longitude" type="text" class="form-control" placeholder="-121.7"/>
+			<% IF messages.longitude %><p class="error"><% messages.longitude %></p><% END %>
+		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">Visibility</span>
+			<select>
+			  <option value="private">Private</option>
+			  <option value="public" selected>Public</option>
+			</select>
+		  </div>
+
+		  <br />
+		  <button type="submit" class="btn btn-primary">Create This Repeater</button>
+		</form>
+	  </div>
+
+
+	</div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <p>Location Map
+            </p>
+        </div>
+        <div class="panel-body">
+            <div id="map" class="map" style="height: 400px;">
+            </div>
+			<p><em>Click on the map or drag the marker to set the latitude and longitude coordinates</em></p>
+        </div>
+    </div>
+  </div>
+		<script>
+		 $(document).ready(function() {
+
+		   var defaultLat = 38.55;
+		   var defaultLon = -121.7;
+
+		   var map = L.map('map').setView([defaultLat, defaultLon], 13);
+
+		   // create the map 
+		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png',
+					   {
+			 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			 maxZoom: 18
+					   }).addTo(map);
+
+		   // create a marker
+		   var marker = L.marker([defaultLat, defaultLon], { 'draggable': true })
+						 .addTo(map);
+		   marker.on('dragend', onDragMarker);
+
+		   function onDragMarker(e) {
+			 var me = e.target;
+			 var where = marker.getLatLng();
+			 console.log(where);
+			 $('#latitude').val(where.lat);
+			 $('#longitude').val(where.lng);
+		   }
+
+		   // create a function to handle clicks and bind it
+		   function onMapClick(e) {
+			 $('#latitude').val(e.latlng.lat);
+			 $('#longitude').val(e.latlng.lng);
+			 marker.setLatLng(e.latlng);
+		   }
+		   map.on('click', onMapClick);
+
+		 });
+		</script>
+

@@ -87,6 +87,15 @@ if ($opts{'c'}) {
       locationzip         int
 )");
 
+$dbh->do("create table repeaters(
+      repeaterid          int(11) NOT NULL auto_increment primary key,
+      repeaterowner       int,
+      repeatercallsign    varchar(16),
+      repeaternotes       varchar(4096),
+      repeaterlat         varchar(4096),
+      repeaterlon         varchar(4096)
+  )");
+
     $dbh->do("create table eventmembers
 (
       eventid                   int,

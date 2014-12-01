@@ -9,8 +9,6 @@ get '/stations' => sub {
 	my $listh = database()->prepare_cached("select * from locations where locationperson = ?");
 	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
-	debug("---------------------");
-	debug($list);
 	
 	template 'stations' => { list => $list }; 
 };

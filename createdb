@@ -112,3 +112,11 @@ $dbh->do("create table repeaters(
       comment                   varchar(255),
       rating                    int
 )");
+
+$dbh->do("create table repeatersignals
+(
+      repeaterid                int,
+      listener                  int,
+      signal                    int
+)");
+

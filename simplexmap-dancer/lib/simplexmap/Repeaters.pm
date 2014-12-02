@@ -55,5 +55,41 @@ get '/repeaters/signals' => sub {
 	template 'repeaters/signals' => { list => $list }; 
 };
 
+post '/repeaters/signals' => sub {
+	debug("starting signals");
+	
+	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
+	$listh->execute();
+	my $list = $listh->fetchall_arrayref({});
+	
+	my $uph = database()->prepare_cached("update repeatersignals
+                                             set signallevel = ?
+                                           where repeaterid = ? and listener = ?");
+	my $insh = database()->prepare_cached("insert into repeatersignals (repeaterid, listener, signallevel) values(?, ?, ?)");
+
+	my $level;
+	
+	foreach my $repeater (@$list) {
+		debug("checking repeater: $repeater->{'repeaterid'}");
+		if ($level = param("signallevel_$repeater->{'repeaterid'}")) {
+			# extract the level
+			$level =~ s/.*S(\d).*/$1/;
+			debug("  level: $level");
+			next if ($level !~ /^\d$/);
+
+			
+			
+			my $count = $uph->execute($level, $repeater->{'repeaterid'}, session('user'));
+			if ($count == 0) {
+				# no row exists; insert it
+				$insh->execute($repeater->{'repeaterid'}, session('user'), $level);
+			}
+		}
+	}
+	
+	template 'repeaters/signals' => { list => $list }; 
+};
+
+
 
 1;

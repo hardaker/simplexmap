@@ -47,4 +47,13 @@ post '/repeaters' => sub {
 	redirect '/repeaters';
 };
 
+get '/repeaters/signals' => sub {
+	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
+	$listh->execute();
+	my $list = $listh->fetchall_arrayref({});
+	
+	template 'repeaters/signals' => { list => $list }; 
+};
+
+
 1;

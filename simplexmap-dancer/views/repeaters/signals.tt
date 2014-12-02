@@ -1,0 +1,41 @@
+<div class="row">
+    <div class="col-md-12" role="main">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+			  Check the repeaters you can hear
+			  <a class="button" href="/repeaters/new">
+				<span class="glyphicon glyphicon-plus pull-right"
+					  data-toggle="tooltip" data-toggle="tooltip"
+					  title="Create a new station"></span>
+			  </a>
+            </div>
+            <div class="panel-body">
+			  <form action="/repeaters/signals" method="post">
+				<table class="table">
+				  <tr><th>Name</th> <th>Latitude</th> <th>Longitude</th> <th>Signal Strength</th></tr>
+				  <% FOREACH item IN list %>
+				  <tr>
+					<td><% item.repeaternotes %>
+					</td>
+					<td><% item.repeaterlat %>
+					</td>
+					<td><% item.repeaterlon %>
+					</td>
+					<td>
+                      <select name="signallevel_<% item.repeaterid %>">
+						<% FOREACH level IN ["S0" "S1" "S2" "S3" "S4" "S5" "S6" "S7" "S8" "S9"] -%>
+						<option value="<% level %>"><% level %></option>
+						<% END %>
+                      </select>
+					</td>
+				  </tr>
+				  <% END %>
+				</table>
+				<br />
+				<button type="submit" class="btn btn-primary">Record these signals</button>
+			  </form>
+            </div>
+        </div>
+    </div>
+</div>
+

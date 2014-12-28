@@ -33,7 +33,7 @@
 			  <% IF messages.password %><p class="error"><% messages.password %></p><% END %>
 			</div>
 			<br />
-			<p><button type="submit" class="btn btn-primary">Login</button></p>
+			<p><button type="submit" class="btn btn-primary">Create Account</button></p>
 		  </form>
 		</div>
 	  </div>

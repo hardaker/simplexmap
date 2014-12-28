@@ -40,6 +40,8 @@ post '/login' => sub {
 
 	$loginh->execute(uc(param('callsign')));
 	if (my $row = $loginh->fetchrow_hashref()) {
+		$loginh->finish;
+
 		my $salt = $row->{'salt'};
 		if (get_salted_password($salt, param('password')) ne $row->{'password'}) {
 			debug("here: " . param('password') . " ne $row->{'password'}");
@@ -53,7 +55,6 @@ post '/login' => sub {
 		}
 		session user => $row->{'id'};
 		session callsign => uc(param('callsign'));
-		$loginh->finish;
 	} else {
 		$loginh->finish;
 		debug("user not found: " . uc(param('callsign')));

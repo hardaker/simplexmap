@@ -37,6 +37,7 @@
            <a class="navbar-brand" href="/">Simplex Mapping Tool</a>
          </div>
 
+		 <% IF session.callsign %>
          <div id="navbar" class="collapse navbar-collapse">
            <ul class="nav navbar-nav">
 			 <li><a href="/stations">My Stations</a></li>
@@ -47,6 +48,7 @@
 			 <% IF session.callsign %><li><a href="#"><% session.callsign %></a></li><% END %>
            </ul>
          </div>
+		 <% END %>
       </div>
      </nav>
      <% content %>

@@ -79,11 +79,13 @@ post '/repeaters/signals' => sub {
 		debug("checking repeater: $repeater->{'repeaterid'}");
 		if ($level = param("signallevel_$repeater->{'repeaterid'}")) {
 			# extract the level
-			$level =~ s/.*S(\d).*/$1/;
+			if ($level eq 'Not Heard') {
+				$level = -1;
+			} else {
+				$level =~ s/.*S(\d).*/$1/;
+			}
 			debug("  level: $level");
-			next if ($level !~ /^\d$/);
-
-			
+			next if ($level !~ /^-?\d$/);
 			
 			my $count = $uph->execute($level, $repeater->{'repeaterid'}, session('user'));
 			if ($count == 0) {

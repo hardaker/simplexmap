@@ -27,6 +27,7 @@
 			  </table>
             </div>
         </div>
+		<a class="btn btn-primary" role="button" href="/stations/new">Create New Station</a>
     </div>
 </div>
 

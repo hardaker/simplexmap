@@ -2,12 +2,12 @@
   <div class="col-md-12" role="main">
     <div class="panel panel-default">
       <div class="panel-heading">
-		<p>Add a new station</p>
+		<p>Add A New Station</p>
       </div>
       <div class="panel-body">
 		<form action="/stations" method="post">
 		  <div class="input-group">
-            <span class="input-group-addon">A Name For It</span>
+            <span class="input-group-addon">A Name For Your Station</span>
 			<input name="identifier" type="text" class="form-control" placeholder="my home"/>
 			<% IF messages.identifier %><p class="error"><% messages.identifier %></p><% END %>
 		  </div>

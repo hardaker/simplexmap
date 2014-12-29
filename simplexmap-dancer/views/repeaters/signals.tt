@@ -25,8 +25,9 @@
 					</td>
 					<td>
                       <select name="signallevel_<% item.repeaterid %>">
-						<% FOREACH level IN ["Not Heard" "S0" "S1" "S2" "S3" "S4" "S5" "S6" "S7" "S8" "S9"] -%>
-						<option value="<% level %>"><% level %></option>
+						<option value="-1">Not Heard</option>
+						<% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+						  <option <% IF item.signallevel == level %>selected<% END %> value="<% level %>">S<% level %></option>
 						<% END %>
                       </select>
 					</td>

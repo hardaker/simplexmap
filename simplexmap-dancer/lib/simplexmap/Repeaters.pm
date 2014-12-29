@@ -1,5 +1,7 @@
 package simplexmap::Repeaters;
 
+use Data::Dumper;
+
 use Dancer ':syntax';
 use Dancer::Plugin::Database;
 use Dancer::Plugin::DataFormValidator;
@@ -54,10 +56,17 @@ post '/repeaters' => sub {
 # signals
 #
 get '/repeaters/signals' => sub {
-	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
-	$listh->execute();
+	# XXX: limit by distance from station location
+
+	my $listh = database()->prepare_cached(
+    	 "select * from repeaters
+       left join repeatersignals
+              on repeaters.repeaterid = repeatersignals.repeaterid
+           where listener = ?");
+
+	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
-	
+
 	template 'repeaters/signals' => { list => $list }; 
 };
 
@@ -77,13 +86,13 @@ post '/repeaters/signals' => sub {
 	
 	foreach my $repeater (@$list) {
 		debug("checking repeater: $repeater->{'repeaterid'}");
-		if ($level = param("signallevel_$repeater->{'repeaterid'}")) {
+		$level = param("signallevel_$repeater->{'repeaterid'}");
+		print STDERR ":",Dumper($level); 
+		if (defined($level)) {
 			# extract the level
-			if ($level eq 'Not Heard') {
-				$level = -1;
-			} else {
-				$level =~ s/.*S(\d).*/$1/;
-			}
+			$level = int($level);
+			next if ($level < -2 || $level > 9);
+			
 			debug("  level: $level");
 			next if ($level !~ /^-?\d$/);
 			
@@ -95,7 +104,7 @@ post '/repeaters/signals' => sub {
 		}
 	}
 	
-	template 'repeaters/signals' => { list => $list }; 
+	redirect '/repeaters/signals';
 };
 
 

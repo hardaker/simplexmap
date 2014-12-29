@@ -2,7 +2,7 @@
     <h1>Simplex Mapping System</h1>
 	<ul>
 	  <li><a href="/stations">Edit Your Stations</a></li>
-	  <li><a href="/repeater">Repeater Signals</a></li>
+	  <li><a href="/repeaters/signals">Repeater Signals</a></li>
 	  <li><a href="/simplex">Simplex Net Mapping</a></li>
 	</ul>
 </div>

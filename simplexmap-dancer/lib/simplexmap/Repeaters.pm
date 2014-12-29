@@ -107,24 +107,16 @@ get '/repeaters/signals' => sub {
 
 	my $stationName = $row->{'locationname'};
 
-	debug("here 1");
-
 	my $listh = database()->prepare_cached(
-    	 "select repeaters.repeaterid, repeatercallsign, repeaterlat, repeaterlon,
+    	 "select repeaters.repeaterid as repeaterid, repeaternotes, repeatercallsign, repeaterlat, repeaterlon,
                  repeaterStrength, sendingStrength
             from repeaters
        left join repeatersignals
               on repeaters.repeaterid = repeatersignals.repeaterid
            where listeningStation = ? or listeningstation is null");
 
-	debug("here 2");
 	$listh->execute($station->{'locationid'});
-	debug("here 3: $station->{'locationid'}");
 	my $list = $listh->fetchall_arrayref({});
-
-	debug("here 4: $station->{'locationid'}");
-
-	print STDERR "list: ", Dumper($list);
 
 	template 'repeaters/signals' => { list => $list,
 	                                  station => $station
@@ -171,6 +163,21 @@ post '/repeaters/signals' => sub {
 	redirect '/repeaters/signals?station=' . $station->{'locationid'};
 };
 
+######################################################################
+# Repeater Map
+get '/repeaters/map' => sub {
+	my $listh = database()->prepare_cached(
+    	 "select repeaters.repeaterid as repeaterid, repeaternotes, repeatercallsign, repeaterlat, repeaterlon,
+                 repeaterStrength, sendingStrength
+            from repeatersignals
+      inner join repeaters
+              on repeaters.repeaterid = repeatersignals.repeaterid
+           where repeaterStrength is not null and repeaterStrength > -1");
 
+	$listh->execute();
+	my $list = $listh->fetchall_arrayref({});
+
+	template 'repeaters/map' => { repeaters => $list };
+};
 
 1;

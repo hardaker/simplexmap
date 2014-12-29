@@ -41,7 +41,7 @@
          <div id="navbar" class="collapse navbar-collapse">
            <ul class="nav navbar-nav">
 			 <li><a href="/stations">My Stations</a></li>
-			 <li><a href="/repeaters">My Repeaters</a></li>
+			 <li><a href="/repeaters/signals">Repeaters</a></li>
 		   </ul>
            <ul class="nav navbar-nav navbar-right">
              <li><a href="/help.html">Help</a></li>

@@ -55,8 +55,36 @@ post '/repeaters' => sub {
 ######################################################################
 # signals
 #
+
+get '/repeaters/signalstart' => sub {
+	my $listh = database()->prepare_cached("select * from locations where locationperson = ?");
+
+	$listh->execute(session('user'));
+	my $list = $listh->fetchall_arrayref({});
+
+	template 'repeaters/signalstart' => { stations => $list };
+};
+
 get '/repeaters/signals' => sub {
 	# XXX: limit by distance from station location
+
+	my $station = param('station');
+	if (!$station) {
+		redirect '/repeaters/signalstart';
+	}
+
+	my $sth = database()->prepare_cached("select * from locations
+                                           where locationperson = ?
+                                             and locationid = ?");
+	$sth->execute(session('user'), $station);
+	my $row = $sth->fetchrow_hashref();
+	$sth->finish;
+
+	if (!$row) {
+		redirect '/repeaters/signalstart';
+	}
+
+	my $stationName = $row->{'locationname'};
 
 	my $listh = database()->prepare_cached(
     	 "select * from repeaters
@@ -67,7 +95,9 @@ get '/repeaters/signals' => sub {
 	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
 
-	template 'repeaters/signals' => { list => $list }; 
+	template 'repeaters/signals' => { list => $list,
+	                                  station => $stationName
+	                                }; 
 };
 
 post '/repeaters/signals' => sub {

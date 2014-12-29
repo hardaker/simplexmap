@@ -1,0 +1,14 @@
+<div class="row">
+    <div class="col-md-12" role="main">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+			  Select the station you want to report signals from:
+            </div>
+		</div>
+		<form method="post" action="/repeaters/signals">
+		  <% FOREACH station in stations %>
+		  <a class="btn btn-primary" role="button" href="/repeaters/signals?station=<% station.locationid %>" ><% station. locationname %></a>
+		  <% END %>
+		</form>
+	</div>
+</div>

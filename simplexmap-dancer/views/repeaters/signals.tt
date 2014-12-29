@@ -12,10 +12,12 @@
             <div class="panel-body">
 			  <form action="/repeaters/signals" method="post">
 				<table class="table">
-				  <tr><th>Name</th> <th>Latitude</th> <th>Longitude</th> <th>Signal Strength</th></tr>
+				  <tr><th>Name</th> <th>Callsign</th><th>Latitude</th> <th>Longitude</th> <th>Signal Strength</th></tr>
 				  <% FOREACH item IN list %>
 				  <tr>
 					<td><% item.repeaternotes %>
+					</td>
+					<td><% item.repeatercallsign %>
 					</td>
 					<td><% item.repeaterlat %>
 					</td>
@@ -23,7 +25,7 @@
 					</td>
 					<td>
                       <select name="signallevel_<% item.repeaterid %>">
-						<% FOREACH level IN ["S0" "S1" "S2" "S3" "S4" "S5" "S6" "S7" "S8" "S9"] -%>
+						<% FOREACH level IN ["Not Heard" "S0" "S1" "S2" "S3" "S4" "S5" "S6" "S7" "S8" "S9"] -%>
 						<option value="<% level %>"><% level %></option>
 						<% END %>
                       </select>

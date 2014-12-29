@@ -13,6 +13,9 @@ get '/repeaters' => sub {
 	template 'repeaters' => { list => $list }; 
 };
 
+######################################################################
+# New repeaters
+
 get '/repeaters/new' => sub {
 	template 'repeaters/new';
 };
@@ -47,6 +50,9 @@ post '/repeaters' => sub {
 	redirect '/repeaters';
 };
 
+######################################################################
+# signals
+#
 get '/repeaters/signals' => sub {
 	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
 	$listh->execute();

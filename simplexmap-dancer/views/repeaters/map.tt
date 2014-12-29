@@ -15,19 +15,21 @@
 			  <form action="/repeaters/signals" method="post">
 				<input type="hidden" name="station" value="<% station.locationid %>" />
 				<table class="table">
-				  <tr><th>Name</th> <th>Callsign</th><th>Latitude</th> <th>Longitude</th> <th>Signal Strength</th></tr>
+				  <tr><th>Name</th> <th>Repeater<br/>Callsign</th><th>Signal Strength</th><th>Receiving<br />Callsign</th><th>Station Name</th></tr>
 				  <% FOREACH item IN repeaters %>
 				  <tr>
 					<td><% item.repeaternotes %>
 					</td>
 					<td><% item.repeatercallsign %>
 					</td>
-					<td><% item.repeaterlat %>
-					</td>
-					<td><% item.repeaterlon %>
-					</td>
 					<td>
 					  <% item.repeaterStrength %>
+					</td>
+					<td>
+					  <% item.callsign %>
+					</td>
+					<td>
+					  <% item.locationName %>
 					</td>
 				  </tr>
 				  <% END %>

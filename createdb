@@ -116,7 +116,8 @@ $dbh->do("create table repeaters(
 $dbh->do("create table repeatersignals
 (
       repeaterid                int,
-      listener                  int,
-      signal                    int
+      listeningStation          int,
+      repeaterStrength          int,
+      sendingStrength           int
 )");
 

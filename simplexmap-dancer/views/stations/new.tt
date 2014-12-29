@@ -5,6 +5,7 @@
 		<p>Add A New Station</p>
       </div>
       <div class="panel-body">
+		<p>Please create a station you listen and/or transmit from.  Use the map to specify the location of your antenna.</p>
 		<form action="/stations" method="post">
 		  <div class="input-group">
             <span class="input-group-addon">A Name For Your Station</span>

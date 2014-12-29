@@ -62,15 +62,15 @@ get '/repeaters/signalstart' => sub {
 	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
 
+	redirect '/stations/new' if ($#$list == -1);
+
 	template 'repeaters/signalstart' => { stations => $list };
 };
 
-get '/repeaters/signals' => sub {
-	# XXX: limit by distance from station location
-
+sub get_station_num {
 	my $station = param('station');
 	if (!$station) {
-		redirect '/repeaters/signalstart';
+		return undef;
 	}
 
 	my $sth = database()->prepare_cached("select * from locations
@@ -81,42 +81,76 @@ get '/repeaters/signals' => sub {
 	$sth->finish;
 
 	if (!$row) {
+		return undef;
+	}
+
+	return $row;
+}
+
+
+get '/repeaters/signals' => sub {
+	# XXX: limit by distance from station location
+
+	my $station = get_station_num();
+	redirect '/repeaters/signalstart' if (!$station);
+
+	my $sth = database()->prepare_cached("select * from locations
+                                           where locationperson = ?
+                                             and locationid = ?");
+	$sth->execute(session('user'), $station->{'locationid'});
+	my $row = $sth->fetchrow_hashref();
+	$sth->finish;
+
+	if (!$row) {
 		redirect '/repeaters/signalstart';
 	}
 
 	my $stationName = $row->{'locationname'};
 
+	debug("here 1");
+
 	my $listh = database()->prepare_cached(
-    	 "select * from repeaters
+    	 "select repeaters.repeaterid, repeatercallsign, repeaterlat, repeaterlon,
+                 repeaterStrength, sendingStrength
+            from repeaters
        left join repeatersignals
               on repeaters.repeaterid = repeatersignals.repeaterid
-           where listener = ?");
+           where listeningStation = ? or listeningstation is null");
 
-	$listh->execute(session('user'));
+	debug("here 2");
+	$listh->execute($station->{'locationid'});
+	debug("here 3: $station->{'locationid'}");
 	my $list = $listh->fetchall_arrayref({});
 
+	debug("here 4: $station->{'locationid'}");
+
+	print STDERR "list: ", Dumper($list);
+
 	template 'repeaters/signals' => { list => $list,
-	                                  station => $stationName
+	                                  station => $station
 	                                }; 
 };
 
 post '/repeaters/signals' => sub {
-	debug("starting signals");
+	debug("starting signals: " . param('station'));
+
+	my $station = get_station_num();
+	redirect '/repeaters/signalstart' if (!$station);
 	
 	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
 	$listh->execute();
 	my $list = $listh->fetchall_arrayref({});
 	
 	my $uph = database()->prepare_cached("update repeatersignals
-                                             set signallevel = ?
-                                           where repeaterid = ? and listener = ?");
-	my $insh = database()->prepare_cached("insert into repeatersignals (repeaterid, listener, signallevel) values(?, ?, ?)");
+                                             set repeaterStrength = ?, sendingStrength = ?
+                                           where repeaterid = ? and listeningStation = ?");
+	my $insh = database()->prepare_cached("insert into repeatersignals (repeaterid, listeningStation, repeaterStrength, sendingStrength) values(?, ?, ?, ?)");
 
 	my $level;
 	
 	foreach my $repeater (@$list) {
 		debug("checking repeater: $repeater->{'repeaterid'}");
-		$level = param("signallevel_$repeater->{'repeaterid'}");
+		$level = param("repeaterStrength_$repeater->{'repeaterid'}");
 		print STDERR ":",Dumper($level); 
 		if (defined($level)) {
 			# extract the level
@@ -126,15 +160,15 @@ post '/repeaters/signals' => sub {
 			debug("  level: $level");
 			next if ($level !~ /^-?\d$/);
 			
-			my $count = $uph->execute($level, $repeater->{'repeaterid'}, session('user'));
+			my $count = $uph->execute($level, 0, $repeater->{'repeaterid'}, $station->{'locationid'});
 			if ($count == 0) {
 				# no row exists; insert it
-				$insh->execute($repeater->{'repeaterid'}, session('user'), $level);
+				$insh->execute($repeater->{'repeaterid'}, $station->{'locationid'}, $level, 0);
 			}
 		}
 	}
 	
-	redirect '/repeaters/signals';
+	redirect '/repeaters/signals?station=' . $station->{'locationid'};
 };
 
 

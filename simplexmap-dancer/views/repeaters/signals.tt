@@ -2,7 +2,7 @@
     <div class="col-md-12" role="main">
         <div class="panel panel-default">
             <div class="panel-heading">
-			  Signal strength from <strong><% station %></strong>
+			  Signal strength from <strong><% station.locationname %></strong>
 			  <a class="button" href="/repeaters/new">
 				<span class="glyphicon glyphicon-plus pull-right"
 					  data-toggle="tooltip" data-toggle="tooltip"
@@ -10,9 +10,10 @@
 			  </a>
             </div>
             <div class="panel-body">
-			  <p>Update the signal strength for the repeaters you can hear from <strong><% station %></strong></p>
+			  <p>Update the signal strength for the repeaters you can hear from <strong><% station.locationname %></strong></p>
 
 			  <form action="/repeaters/signals" method="post">
+				<input type="hidden" name="station" value="<% station.locationid %>" />
 				<table class="table">
 				  <tr><th>Name</th> <th>Callsign</th><th>Latitude</th> <th>Longitude</th> <th>Signal Strength</th></tr>
 				  <% FOREACH item IN list %>
@@ -26,10 +27,10 @@
 					<td><% item.repeaterlon %>
 					</td>
 					<td>
-                      <select name="signallevel_<% item.repeaterid %>">
+                      <select name="repeaterStrength_<% item.repeaterid %>">
 						<option value="-1">Not Heard</option>
 						<% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
-						  <option <% IF item.signallevel == level %>selected<% END %> value="<% level %>">S<% level %></option>
+						  <option <% IF item.repeaterStrength == level %>selected<% END %> value="<% level %>">S<% level %></option>
 						<% END %>
                       </select>
 					</td>

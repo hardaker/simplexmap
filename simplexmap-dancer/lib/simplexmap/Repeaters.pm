@@ -171,6 +171,11 @@ get '/repeaters/map' => sub {
 	my $allrepeaters = $repeatersh->fetchall_hashref('repeaterid');
 	$allrepeaters = to_json($allrepeaters);
 
+	my $stationsh = database()->prepare_cached("select * from locations");
+	$stationsh->execute();
+	my $allstations = $stationsh->fetchall_hashref('locationid');
+	$allstations = to_json($allstations);
+	
 	my $listh = database()->prepare_cached(
     	 "select repeaters.repeaterid as repeaterid, repeaternotes, repeatercallsign, repeaterlat, repeaterlon,
                  repeaterStrength, sendingStrength, people.callsign as callsign, locationName, locationlat, locationlon
@@ -187,6 +192,7 @@ get '/repeaters/map' => sub {
 	my $list = $listh->fetchall_arrayref({});
 
 	template 'repeaters/map' => { repeaters => $allrepeaters,
+	                              stations => $allstations,
 	                              linking => $list };
 };
 

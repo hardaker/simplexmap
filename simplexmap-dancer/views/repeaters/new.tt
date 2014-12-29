@@ -2,9 +2,13 @@
   <div class="col-md-12" role="main">
     <div class="panel panel-default">
       <div class="panel-heading">
-		<p>Add a new station</p>
+		<p>Add a new repeater</p>
       </div>
       <div class="panel-body">
+		<div class="alert alert-warning">
+		  Do not create a new repeater if you don't know where it's transmitting antenna is located
+		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+		</div>
 		<form action="/repeaters" method="post">
 		  <div class="input-group">
             <span class="input-group-addon">A Name For It</span>

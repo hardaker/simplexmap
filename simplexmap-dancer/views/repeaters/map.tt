@@ -2,7 +2,7 @@
     <div class="col-md-12" role="main">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <p>Map
+          <p>Repeater Map
           </p>
         </div>
         <div class="panel-body">
@@ -22,6 +22,8 @@
 
 		   var map = L.map('map').setView([defaultLat, defaultLon], 10);
 
+		   var repeaters = <% repeaters %>
+
 		   // create the map 
 		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png',
 					   {
@@ -29,11 +31,18 @@
 			 maxZoom: 18
 					   }).addTo(map);
 
-		   <% FOREACH item in repeaters %>
-		   L.marker([<% item.repeaterlat %>, <% item.repeaterlon %>])
-			.addTo(map);
-		   L.marker([<% item.locationlat %>, <% item.locationlon %>])
-			.addTo(map);
-		   <% END %>
+		   
+		   for (repeater in repeaters) {
+			 if (repeaters.hasOwnProperty(repeater)) {
+			   console.log(repeaters[repeater]);
+			   console.log(repeaters[repeater]['repeaterlat']);
+			   console.log(repeaters[repeater]['repeaterlon']);
+			   console.log(parseFloat(repeaters[repeater]['repeaterlon']));
+
+			   L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
+						 parseFloat(repeaters[repeater]['repeaterlon'])])
+				.addTo(map);
+			 }
+		   }			 
 		 });
 		</script>

@@ -168,7 +168,7 @@ post '/repeaters/signals' => sub {
 get '/repeaters/map' => sub {
 	my $listh = database()->prepare_cached(
     	 "select repeaters.repeaterid as repeaterid, repeaternotes, repeatercallsign, repeaterlat, repeaterlon,
-                 repeaterStrength, sendingStrength, people.callsign as callsign, locationName
+                 repeaterStrength, sendingStrength, people.callsign as callsign, locationName, locationlat, locationlon
             from repeatersignals
       inner join repeaters
               on repeaters.repeaterid = repeatersignals.repeaterid

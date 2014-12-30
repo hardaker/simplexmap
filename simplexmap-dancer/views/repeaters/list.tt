@@ -1,0 +1,30 @@
+<div class="row">
+    <div class="col-md-12" role="main">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+			Repeaters in the system
+			</div>
+            <div class="panel-body">
+			  <table class="table">
+				<tr> <th>Name </th> <th>Latitude </th> <th>Longitude </th></tr>
+				<% FOREACH repeater IN repeaters %>
+				<tr>
+				  <td><% repeater.repeaternotes %>
+				  </td>
+				  <td><% repeater.repeaterlat %>
+				  </td>
+				  <td><% repeater.repeaterlon %>
+				  </td>
+				</tr>
+				<% END %>
+			  </table>
+            </div>
+        </div>
+
+		<div class="alert alert-info">
+		  Know of a repeater not listed and know where it's antenna is on a map?<br /><a href="/repeaters/new">Add it to the sytem!</a>
+		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+		</div>
+    </div>
+</div>
+

@@ -20,34 +20,47 @@
 		   var defaultLat = 38.55;
 		   var defaultLon = -121.7;
 
-		   var map = L.map('map').setView([defaultLat, defaultLon], 10);
-
 		   var repeaters = <% repeaters %>
 		   var stations = <% stations %>
 		   var links = <% links %>
 
 		   // create the map 
-		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png',
-					   {
-			 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			 maxZoom: 18
-					   }).addTo(map);
+		   var map = L.map('map', {
+			 center: [defaultLat, defaultLon],
+			 zoom:   10,
+		   });
 
+		   // setup the repeater grouping
+		   var repeaterLayerObjs = [];
 		   for (repeater in repeaters) {
 			 if (repeaters.hasOwnProperty(repeater)) {
-			   L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
-						 parseFloat(repeaters[repeater]['repeaterlon'])]).addTo(map);
+			   var repeatMark = 
+				 L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
+						   parseFloat(repeaters[repeater]['repeaterlon'])])
+
+			   repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
 			 }
 		   }			 
+		   var repeaterGroup = L.layerGroup(repeaterLayerObjs);
+		   repeaterGroup.addTo(map);
 
+		   // set up the station grouping
+		   var stationLayerObjs = [];
 		   for (station in stations) {
 			 if (stations.hasOwnProperty(station)) {
-			   console.log(stations[station]);
+			   var stationMark = 
 			   L.marker([parseFloat(stations[station]['locationlat']),
 						 parseFloat(stations[station]['locationlon'])]).addTo(map)
-			   console.log("done");
+			   stationLayerObjs[stationLayerObjs.length] = stationMark;
 			 }
 		   }
+		   var stationGroup = L.layerGroup(stationLayerObjs);
+		   stationGroup.addTo(map);
+
+		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png', {
+			 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			 maxZoom: 18
+		   }).addTo(map);
 
 		   for (linkid in links) {
 			 var link = links[linkid];
@@ -55,5 +68,9 @@
 						 [parseFloat(link['locationlat']), parseFloat(link['locationlon'])],
 			 ]).addTo(map);
 		   }
+
+		   L.control.layers(null,  { 'Repeaters': repeaterGroup,
+									 'Stations':  stationGroup} ).addTo(map);
+
 });
 		</script>

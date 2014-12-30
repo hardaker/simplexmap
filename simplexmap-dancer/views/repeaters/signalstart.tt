@@ -5,10 +5,10 @@
 			  Select the station you want to report signals from:
             </div>
 		</div>
-		<form method="post" action="/repeaters/signals">
+		<ul>
 		  <% FOREACH station in stations %>
-		  <a class="btn btn-primary" role="button" href="/repeaters/signals?station=<% station.locationid %>" ><% station. locationname %></a>
+		  <li><a class="btn btn-primary" role="button" href="/repeaters/signals?station=<% station.locationid %>" ><% station. locationname %></a></li>
 		  <% END %>
-		</form>
+		</ul>
 	</div>
 </div>

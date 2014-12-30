@@ -52,6 +52,7 @@
 			   repeaters[repeater]['lines'] = [];
 			   repeaters[repeater]['mark'] = repeatMark;
 			   repeatMark['ws6z_lines'] = [];
+			   repeatMark['ws6z_shown'] = false;
 			   repeatMark.on('click', onMarkerClick);
 			 }
 		   }			 
@@ -71,6 +72,7 @@
 			   stations[station]['lines'] = [];
 			   stations[station]['mark'] = stationMark;
 			   stationMark['ws6z_lines'] = [];
+			   stationMark['ws6z_shown'] = false;
 			   stationMark.on('click', onMarkerClick);
 			 }
 		   }
@@ -92,24 +94,24 @@
 			 repeaters[link['repeaterid']]['mark']['ws6z_lines'][repeaters[link['repeaterid']]['mark']['ws6z_lines'].length] = line;
 		   }
 
-		   for(repeater in repeaters) {
-			 for (line in repeaters[repeater]['lines']) {
-			   repeaters[repeater]['lines'][line].addTo(map);
-			 }
-		   }
 		   L.control.layers(null,  { 'Repeaters': repeaterGroup,
 									 'Stations':  stationGroup} ).addTo(map);
 
 
 		   function onMarkerClick(e) {
 			 // 'this' should be a marker
-			 console.log(this);
 			 var lines = this.ws6z_lines;
-			 console.log(lines);
+			 var shown = this.ws6z_shown;
+			 
 			 for (line in lines) {
 			   //lines[line].hide();
-			   map.removeLayer(lines[line]);
+			   if (shown) {
+				 map.removeLayer(lines[line]);
+			   } else {
+				 map.addLayer(lines[line]);
+			   }
 			 }
+			 this.ws6z_shown = !shown;
 		   }
 
 });

@@ -50,6 +50,9 @@
 			   repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
 
 			   repeaters[repeater]['lines'] = [];
+			   repeaters[repeater]['mark'] = repeatMark;
+			   repeatMark['ws6z_lines'] = [];
+			   repeatMark.on('click', onMarkerClick);
 			 }
 		   }			 
 		   var repeaterGroup = L.layerGroup(repeaterLayerObjs);
@@ -66,6 +69,9 @@
 			   stationLayerObjs[stationLayerObjs.length] = stationMark;
 
 			   stations[station]['lines'] = [];
+			   stations[station]['mark'] = stationMark;
+			   stationMark['ws6z_lines'] = [];
+			   stationMark.on('click', onMarkerClick);
 			 }
 		   }
 		   var stationGroup = L.layerGroup(stationLayerObjs);
@@ -79,7 +85,11 @@
 
 			 
 			 stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;
+			 stations[link['listeningStation']]['mark']['ws6z_lines'][stations[link['listeningStation']]['mark']['ws6z_lines'].length] = line;
+
 			 repeaters[link['repeaterid']]['lines'][repeaters[link['repeaterid']]['lines'].length] = line;
+
+			 repeaters[link['repeaterid']]['mark']['ws6z_lines'][repeaters[link['repeaterid']]['mark']['ws6z_lines'].length] = line;
 		   }
 
 		   for(repeater in repeaters) {
@@ -89,6 +99,18 @@
 		   }
 		   L.control.layers(null,  { 'Repeaters': repeaterGroup,
 									 'Stations':  stationGroup} ).addTo(map);
+
+
+		   function onMarkerClick(e) {
+			 // 'this' should be a marker
+			 console.log(this);
+			 var lines = this.ws6z_lines;
+			 console.log(lines);
+			 for (line in lines) {
+			   //lines[line].hide();
+			   map.removeLayer(lines[line]);
+			 }
+		   }
 
 });
 		</script>

@@ -17,6 +17,8 @@
 		<script>
 		 $(document).ready(function() {
 
+		   var currentLine;
+
 		   var defaultLat = 38.55;
 		   var defaultLon = -121.7;
 
@@ -29,6 +31,12 @@
 			 center: [defaultLat, defaultLon],
 			 zoom:   10,
 		   });
+
+		   // add the base map
+		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png', {
+			 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			 maxZoom: 18
+		   }).addTo(map);
 
 		   // setup the repeater grouping
 		   var repeaterLayerObjs = [];
@@ -46,29 +54,35 @@
 
 		   // set up the station grouping
 		   var stationLayerObjs = [];
+		   var stationLines = [];
 		   for (station in stations) {
 			 if (stations.hasOwnProperty(station)) {
 			   var stationMark = 
 			   L.marker([parseFloat(stations[station]['locationlat']),
 						 parseFloat(stations[station]['locationlon'])]).addTo(map)
 			   stationLayerObjs[stationLayerObjs.length] = stationMark;
+
+			   stations[station]['lines'] = [];
 			 }
 		   }
 		   var stationGroup = L.layerGroup(stationLayerObjs);
 		   stationGroup.addTo(map);
 
-		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png', {
-			 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			 maxZoom: 18
-		   }).addTo(map);
-
+		   // add the links between the various objects
 		   for (linkid in links) {
 			 var link = links[linkid];
-			 L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
-						 [parseFloat(link['locationlat']), parseFloat(link['locationlon'])],
-			 ]).addTo(map);
+			 var line = L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
+									[parseFloat(link['locationlat']), parseFloat(link['locationlon'])]]);
+
+			 
+			 stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;
 		   }
 
+		   for(station in stations) {
+			 for (line in stations[station]['lines']) {
+			   stations[station]['lines'][line].addTo(map);
+			 }
+		   }
 		   L.control.layers(null,  { 'Repeaters': repeaterGroup,
 									 'Stations':  stationGroup} ).addTo(map);
 

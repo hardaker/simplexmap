@@ -24,6 +24,7 @@
 
 		   var repeaters = <% repeaters %>
 		   var stations = <% stations %>
+		   var links = <% links %>
 
 		   // create the map 
 		   L.tileLayer('http://a.tiles.mapbox.com/v3/hardaker.kc8b5joe/{z}/{x}/{y}.png',
@@ -32,21 +33,27 @@
 			 maxZoom: 18
 					   }).addTo(map);
 
-		   
 		   for (repeater in repeaters) {
 			 if (repeaters.hasOwnProperty(repeater)) {
 			   L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
-						 parseFloat(repeaters[repeater]['repeaterlon'])])
-				.addTo(map);
+						 parseFloat(repeaters[repeater]['repeaterlon'])]).addTo(map);
 			 }
 		   }			 
 
 		   for (station in stations) {
 			 if (stations.hasOwnProperty(station)) {
+			   console.log(stations[station]);
 			   L.marker([parseFloat(stations[station]['locationlat']),
-						 parseFloat(stations[station]['locationlon'])])
-				.addTo(map);
+						 parseFloat(stations[station]['locationlon'])]).addTo(map)
+			   console.log("done");
 			 }
-		   }			 
+		   }
+
+		   for (linkid in links) {
+			 var link = links[linkid];
+			 L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
+						 [parseFloat(link['locationlat']), parseFloat(link['locationlon'])],
+			 ]).addTo(map);
+		   }
 });
 		</script>

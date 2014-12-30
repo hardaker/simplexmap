@@ -68,7 +68,7 @@ get '/signup' => sub {
 };
 
 post '/signup' => sub {
-	
+
 	my $results = 
 	  dfv({ required => ['firstname', 'lastname', 'callsign', 'email', 'password'],
 	        filters => 'trim',
@@ -112,9 +112,7 @@ post '/signup' => sub {
 
 	# send email
 	my $sender = new Mail::Sender { smtp => 'dawn.hardakers.net',
-	                                  port => 465,
-	                                    auth => 'PLAIN',
-	                                      from => "wes\@ws6z.com"};
+	                                  from => "wes\@ws6z.com"};
 	my $ret = 
 	$sender->MailMsg({ to => $vals->{'email'},
 	                   subject => 'validation link for the simplex mapping site',

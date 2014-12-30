@@ -40,6 +40,7 @@
 
 		   // setup the repeater grouping
 		   var repeaterLayerObjs = [];
+		   var repeaterLines = [];
 		   for (repeater in repeaters) {
 			 if (repeaters.hasOwnProperty(repeater)) {
 			   var repeatMark = 
@@ -47,6 +48,8 @@
 						   parseFloat(repeaters[repeater]['repeaterlon'])])
 
 			   repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
+
+			   repeaters[repeater]['lines'] = [];
 			 }
 		   }			 
 		   var repeaterGroup = L.layerGroup(repeaterLayerObjs);
@@ -76,11 +79,12 @@
 
 			 
 			 stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;
+			 repeaters[link['repeaterid']]['lines'][repeaters[link['repeaterid']]['lines'].length] = line;
 		   }
 
-		   for(station in stations) {
-			 for (line in stations[station]['lines']) {
-			   stations[station]['lines'][line].addTo(map);
+		   for(repeater in repeaters) {
+			 for (line in repeaters[repeater]['lines']) {
+			   repeaters[repeater]['lines'][line].addTo(map);
 			 }
 		   }
 		   L.control.layers(null,  { 'Repeaters': repeaterGroup,

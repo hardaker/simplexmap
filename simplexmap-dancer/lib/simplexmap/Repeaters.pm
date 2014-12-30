@@ -143,13 +143,11 @@ post '/repeaters/signals' => sub {
 	foreach my $repeater (@$list) {
 		debug("checking repeater: $repeater->{'repeaterid'}");
 		$level = param("repeaterStrength_$repeater->{'repeaterid'}");
-		print STDERR ":",Dumper($level); 
 		if (defined($level)) {
 			# extract the level
 			$level = int($level);
 			next if ($level < -2 || $level > 9);
 			
-			debug("  level: $level");
 			next if ($level !~ /^-?\d$/);
 			
 			my $count = $uph->execute($level, 0, $repeater->{'repeaterid'}, $station->{'locationid'});
@@ -190,9 +188,7 @@ get '/repeaters/map' => sub {
 	$listh->execute();
 	my $links = $listh->fetchall_arrayref({});
 
-	print STDERR "signals: ", Dumper($links);
 	$links = to_json($links);
-	print STDERR "signals: ", Dumper($links);
 
 	template 'repeaters/map' => { repeaters => $allrepeaters,
 	                              stations => $allstations,

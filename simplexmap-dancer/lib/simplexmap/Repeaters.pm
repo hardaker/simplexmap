@@ -121,7 +121,7 @@ get '/repeaters/signals' => sub {
             from repeaters
        left join repeatersignals
               on repeaters.repeaterid = repeatersignals.repeaterid
-           where listeningStation = ? or listeningstation is null");
+                 and listeningStation = ?");
 
 	$listh->execute($station->{'locationid'});
 	my $list = $listh->fetchall_arrayref({});

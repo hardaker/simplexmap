@@ -22,6 +22,11 @@
         </div>
 
 		<div class="alert alert-info">
+		  Want to record whether you can hear these repeaters?  <a href="/repeaters/signals">Do that here!</a>
+		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+		</div>
+
+		<div class="alert alert-info">
 		  Know of a repeater not listed and know where it's antenna is on a map?<br /><a href="/repeaters/new">Add it to the sytem!</a>
 		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 		</div>

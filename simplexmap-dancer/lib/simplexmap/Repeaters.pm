@@ -18,6 +18,14 @@ get '/repeaters' => sub {
 ######################################################################
 # New repeaters
 
+get '/repeaters/list' => sub {
+	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
+	$listh->execute();
+	my $repeaters = $listh->fetchall_arrayref({});
+
+	template 'repeaters/list' => { repeaters => $repeaters };
+};
+
 get '/repeaters/new' => sub {
 	template 'repeaters/new';
 };

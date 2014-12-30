@@ -189,7 +189,7 @@ get '/repeaters/map' => sub {
                  locationlat, locationlon, repeaterlat, repeaterlon
             from repeatersignals
       inner join locations on locationId = listeningStation
-      inner join repeaters on repeaters.repeaterid = repeaters.repeaterid
+      inner join repeaters on repeaters.repeaterid = repeatersignals.repeaterid
            where repeaterStrength is not null and repeaterStrength > -1");
 	warn(database()->errstr) if (!$listh);
 

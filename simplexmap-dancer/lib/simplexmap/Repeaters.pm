@@ -171,29 +171,27 @@ get '/repeaters/map' => sub {
 	my $allrepeaters = $repeatersh->fetchall_hashref('repeaterid');
 	$allrepeaters = to_json($allrepeaters);
 
-	my $stationsh = database()->prepare_cached("select * from locations");
+	my $stationsh = database()->prepare_cached("select * from locations
+                                            inner join people
+                                                    on locations.locationperson = people.id");
 	$stationsh->execute();
 	my $allstations = $stationsh->fetchall_hashref('locationid');
 	$allstations = to_json($allstations);
 	
 	my $listh = database()->prepare_cached(
-    	 "select repeaters.repeaterid as repeaterid, repeaternotes, repeatercallsign, repeaterlat, repeaterlon,
-                 repeaterStrength, sendingStrength, people.callsign as callsign, locationName, locationlat, locationlon
+    	 "select repeaterid, listeningStation, repeaterStrength, sendingStrength
             from repeatersignals
-      inner join repeaters
-              on repeaters.repeaterid = repeatersignals.repeaterid
-      inner join locations
-              on repeatersignals.listeningStation = locations.locationid
-      inner join people
-              on locations.locationperson = people.id
            where repeaterStrength is not null and repeaterStrength > -1");
 
 	$listh->execute();
 	my $list = $listh->fetchall_arrayref({});
 
+	print STDERR "signals: ", Dumper($list);
+
+
 	template 'repeaters/map' => { repeaters => $allrepeaters,
 	                              stations => $allstations,
-	                              linking => $list };
+	                              links => $list };
 };
 
 1;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lange="en">
   <head>
+
     <title>WS6Z's Simplex Mapping Tool</title>
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/css/simplexmap.css">
@@ -11,54 +12,63 @@
     <meta name="description" content="A radio contact mapping system">
     <meta name="keywords" content="ham, radio, map, traffic, repeater, simplex">
     
+	<script src="/js/jquery-1.9.1.min.js"></script>
     <script src="/js/simplexmap.js"></script>
-    <script type="text/javascript" src="/js/jquery.js"></script>
 
 	<!-- leaflet mapping APIs -->
-	<!-- 
+	<!--
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
 	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-	 -->
+	-->
+
 	<link rel="stylesheet" href="/leaflet/leaflet.css" />
 	<script src="/leaflet/leaflet.js"></script>
   </head>
-<body>
+  <body>
+	<div class="container">
+      <nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+          <div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/">Signal Mapping Tool</a>
+          </div>
 
-<div class="container">
-     <nav class="navbar navbar-inverse" role="navigation">
-      <div class="container-fluid">
-         <div class="navbar-header">
-           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-             <span class="sr-only">Toggle navigation</span>
-             <span class="icon-bar"></span>
-             <span class="icon-bar"></span>
-             <span class="icon-bar"></span>
-           </button>
-           <a class="navbar-brand" href="/">Simplex Mapping Tool</a>
-         </div>
+		  <% IF session.callsign %>
+          <div class="collapse navbar-collapse" id="navbar-collapse-1">
+			<ul class="nav navbar-nav">
+			  <li><a href="/stations">My Stations</a></li>
 
-		 <% IF session.callsign %>
-         <div id="navbar" class="collapse navbar-collapse">
-           <ul class="nav navbar-nav">
-			 <li><a href="/stations">My Stations</a></li>
-			 <li><a href="/repeaters/signals">Repeaters</a></li>
-		   </ul>
-           <ul class="nav navbar-nav navbar-right">
-             <li><a href="/help.html">Help</a></li>
-			 <% IF session.callsign %><li><a href="#"><% session.callsign %></a></li><% END %>
-           </ul>
-         </div>
-		 <% END %>
+			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Repeaters<span class="caret"></span> </a>
+				<ul class="dropdown-menu so-scrollable">
+				  <li><a href="/repeaters/list">Repeater list</a></li>
+				  <li><a href="/repeaters/signals">Report Signals</a></li>
+				  <li><a href="/repeaters/new">Add a new repeater</a></li>
+				</ul>
+			  </li>
+			  <li><a href="/repeaters/map">Signal Map</a></li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+              <li><a href="/help.html">Help</a></li>
+			  <% IF session.callsign %><li><a href="#"><% session.callsign %></a></li><% END %>
+			</ul>
+          </div>
+		  <% END %>
+		</div>
+      </nav>
+
+      <% content %>
+
+      <hr />
+      <div id="footer">
+		Created by <a href="http://www.ws6z.com/">WS6Z</a>
       </div>
-     </nav>
-     <% content %>
+	</div>
 
-     <hr />
-     <div id="footer">
-       Created by <a href="http://www.ws6z.com/">WS6Z</a>
-     </div>
-</div>
-
-    <script src="/js/bootstrap.min.js"></script>
-</body>
+    <script src="/js/bootstrap.js"></script>
+  </body>
 </html>

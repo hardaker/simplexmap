@@ -142,7 +142,7 @@ any '/validate' => sub {
                                            where callsign = ? and validation = ?");
 	$sth->execute(uc(param('callsign')), param('validation'));
 
-	debug("validating: " . param('callsign') . " with " . param('validation'));
+	#debug("validating: " . param('callsign') . " with " . param('validation'));
 
 	if (my $row = $sth->fetchrow_hashref()) {
 		# success

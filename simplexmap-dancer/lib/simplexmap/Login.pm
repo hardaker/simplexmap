@@ -140,14 +140,14 @@ any '/validate' => sub {
 	
 	my $sth = database()->prepare_cached("select * from people
                                            where callsign = ? and validation = ?");
-	$sth->execute(uc(param('callsign')), param('validation'));
+	$sth->execute(uc(param('callsign')), param('code'));
 
-	#debug("validating: " . param('callsign') . " with " . param('validation'));
+	debug("validating: " . (param('callsign') || "no call") . " with " . (param('code') || 'no val'));
 
 	if (my $row = $sth->fetchrow_hashref()) {
 		# success
 		my $uph = database()->prepare_cached("update people set validation = ? where callsign = ?");
-		$uph->execute(param('validation'), uc(param('callsign')));
+		$uph->execute(param('code'), uc(param('callsign')));
 
 		# set their session
 		session user => $row->{'id'};

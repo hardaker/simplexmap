@@ -54,7 +54,11 @@
 			</ul>
 			<ul class="nav navbar-nav navbar-right">
               <li><a href="/help.html">Help</a></li>
-			  <% IF session.callsign %><li><a href="#"><% session.callsign %></a></li><% END %>
+
+			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#"><% session.callsign %><span class="caret"></span> </a>
+				<ul class="dropdown-menu so-scrollable">
+				  <li><a href="/logout">Logout</a></li>
+				</ul>
 			</ul>
           </div>
 		  <% END %>

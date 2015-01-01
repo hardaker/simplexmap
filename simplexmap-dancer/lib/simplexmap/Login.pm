@@ -122,7 +122,7 @@ Someone has created an account on the simplex mapping system using this email
 address and a callsign of '$vals->{callsign}'.  Hopefully this was you!
 To validate your address and complete your account, please click on this link:
 
-  http://localhost:4000/validate?code=$verifyCode&callsign=$vals->{callsign}
+  http://map.ws6z.com/validate?code=$verifyCode&callsign=$vals->{callsign}
 
 "
 	                 });	
@@ -136,6 +136,102 @@ To validate your address and complete your account, please click on this link:
 	template 'waiting_verification';
 };
 
+get '/login/forgot' => sub {
+	template 'login/forgot';
+};
+
+post '/login/forgot' => sub {
+	my $sth = database()->prepare_cached("select * from people
+                                           where callsign = ? and email = ?");
+	$sth->execute(uc(param('callsign')), param('email'));
+	my $row = $sth->fetchrow_hashref;
+	$sth->finish;
+	
+	if (!$row) {
+		return template error => { error => "Unknown login credentials" }
+	}
+
+	# put them into the db
+	my $insh = database()->prepare_cached("update people set validation = ? where id = ?");
+	my $verifyCode = get_salt();
+	$insh->execute($verifyCode, $row->{'id'});
+
+	# send email
+	my $sender = new Mail::Sender { smtp => 'dawn.hardakers.net',
+	                                  from => "wes\@ws6z.com"};
+	my $ret = 
+	$sender->MailMsg({ to => $row->{'email'},
+	                   subject => 'signal mapping system password reset link',
+	                   msg =>
+"
+Someone trying to access the signal mapping system using this email
+address and a callsign of '" . param('callsign') . "'.  Hopefully this was you!
+To reset your password please visit this link:
+
+  http://map.ws6z.com/login/reset?code=$verifyCode&callsign=$row->{'callsign'}
+
+"
+	                 });	
+
+	if (ref($ret) ne 'Mail::Sender') {
+		warn("mail::sender failed: $ret -- $sender->{error_msg}"); 
+	}
+
+	template 'login/reset_email';
+};
+
+get '/login/reset' => sub {
+	my $dbh = database();
+	my $sth = database()->prepare_cached("select * from people
+                                           where callsign = ? and validation = ?");
+	$sth->execute(uc(param('callsign')), param('code'));
+
+	debug("resetting: " . (param('callsign') || "no call") . " with " . (param('code') || 'no val'));
+
+	if (my $row = $sth->fetchrow_hashref()) {
+		return template '/login/reset_password.tt' =>
+		  {
+		   code => param('code'),
+		   callsign => param('callsign')
+		  };
+	}
+
+	# failure
+	template 'error' => { error => 'failed to find that validation code; it may have expired.' };
+};
+
+post '/login/reset' => sub {
+	my $sth = database()->prepare_cached("select * from people
+                                           where callsign = ? and validation = ?");
+	$sth->execute(uc(param('callsign')), param('code'));
+
+	debug("resetting2: " . (param('callsign') || "no call") . " with " . (param('code') || 'no val'));
+
+	if (my $row = $sth->fetchrow_hashref()) {
+		# success
+		$sth->finish;
+
+		my $password = param('password');
+		if (length($password) < 6) {
+			return template error => { error => "password too short" };
+		}
+
+		my $salt = get_salt();
+		my $uph = database()->prepare_cached("update people set salt = ?, password = ?, validation = ? where callsign = ?");
+		$uph->execute($salt, get_salted_password($salt, param('password')), "", uc(param('callsign')));
+
+		# set their session
+		session user => $row->{'id'};
+		session callsign => uc(param('callsign'));
+
+		return redirect '/';
+	}
+
+	# failure
+	$sth->finish;
+	template 'error' => { error => 'failed to find that validation code; it may have expired.' };
+};
+
 any '/validate' => sub {
 	
 	my $sth = database()->prepare_cached("select * from people
@@ -147,7 +243,7 @@ any '/validate' => sub {
 	if (my $row = $sth->fetchrow_hashref()) {
 		# success
 		my $uph = database()->prepare_cached("update people set validation = ? where callsign = ?");
-		$uph->execute(param('code'), uc(param('callsign')));
+		$uph->execute('', uc(param('callsign')));
 
 		# set their session
 		session user => $row->{'id'};
@@ -160,6 +256,10 @@ any '/validate' => sub {
 	template 'waiting_verification' => { failed => 1 };
 };
 
+get '/logout' => sub {
+    session->destroy;
+    redirect '/login';
+};
 
 sub get_salt {
 	my $salt = encode_base64(Crypt::OpenSSL::Random::random_bytes(10));

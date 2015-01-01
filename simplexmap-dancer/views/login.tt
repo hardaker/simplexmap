@@ -22,5 +22,6 @@
 		</div>
 	  </div>
 	  <p>New here?  <a href="/signup">Create an account</a></p>
+	  <p>You lost your password? <a href="/login/forgot">Oh no!</a></p>
 	</div>
   </div>

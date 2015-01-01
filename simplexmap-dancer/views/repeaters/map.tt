@@ -45,7 +45,8 @@
 			 if (repeaters.hasOwnProperty(repeater)) {
 			   var repeatMark = 
 				 L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
-						   parseFloat(repeaters[repeater]['repeaterlon'])])
+						   parseFloat(repeaters[repeater]['repeaterlon'])],
+						  {title: repeaters[repeater]['repeatercallsign']});
 
 			   repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
 
@@ -66,7 +67,8 @@
 			 if (stations.hasOwnProperty(station)) {
 			   var stationMark = 
 			   L.marker([parseFloat(stations[station]['locationlat']),
-						 parseFloat(stations[station]['locationlon'])]).addTo(map)
+						 parseFloat(stations[station]['locationlon'])],
+						{title: stations[station]['callsign'] + ": " + stations[station]['locationname']}).addTo(map)
 			   stationLayerObjs[stationLayerObjs.length] = stationMark;
 
 			   stations[station]['lines'] = [];

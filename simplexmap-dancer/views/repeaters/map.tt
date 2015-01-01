@@ -13,7 +13,6 @@
       </div>
 	</div>
 </div>
-</div>
 <script>
  $(document).ready(function() {
 
@@ -66,10 +65,10 @@
 	   repeaters[repeater]['offset'] = [0, -iconRepeaterSize/2];
 
 	   var repeatMark = 
-		 L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
-				   parseFloat(repeaters[repeater]['repeaterlon'])],
-				  {title: repeaters[repeater]['repeatercallsign'],
-				   icon: repeaterIcon});
+	   L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
+				 parseFloat(repeaters[repeater]['repeaterlon'])],
+				{title: repeaters[repeater]['repeatercallsign'],
+				 icon: repeaterIcon});
 
 	   repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
 

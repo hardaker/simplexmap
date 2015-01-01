@@ -166,7 +166,7 @@ post '/repeaters/signals' => sub {
 		}
 	}
 	
-	redirect '/repeaters/signals?station=' . $station->{'locationid'};
+	redirect '/repeaters/list';
 };
 
 ######################################################################

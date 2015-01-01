@@ -115,10 +115,10 @@ post '/signup' => sub {
 	                                  from => "wes\@ws6z.com"};
 	my $ret = 
 	$sender->MailMsg({ to => $vals->{'email'},
-	                   subject => 'validation link for the simplex mapping site',
+	                   subject => 'validation link for the signal mapping site',
 	                   msg =>
 "
-Someone has created an account on the simplex mapping system using this email
+Someone has created an account on the signal mapping system using this email
 address and a callsign of '$vals->{callsign}'.  Hopefully this was you!
 To validate your address and complete your account, please click on this link:
 

@@ -112,17 +112,19 @@
 
 		   // add the links between the various objects
 		   for (linkid in links) {
-			 var link = links[linkid];
-			 var line = L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
-									[parseFloat(link['locationlat']), parseFloat(link['locationlon'])]]);
+			 if (links.hasOwnProperty(linkid)) {
+			   var link = links[linkid];
+			   var line = L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
+									  [parseFloat(link['locationlat']), parseFloat(link['locationlon'])]]);
 
-			 
-			 stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;
-			 stations[link['listeningStation']]['mark']['ws6z_lines'][stations[link['listeningStation']]['mark']['ws6z_lines'].length] = line;
+			   
+			   stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;
+			   stations[link['listeningStation']]['mark']['ws6z_lines'][stations[link['listeningStation']]['mark']['ws6z_lines'].length] = line;
 
-			 repeaters[link['repeaterid']]['lines'][repeaters[link['repeaterid']]['lines'].length] = line;
+			   repeaters[link['repeaterid']]['lines'][repeaters[link['repeaterid']]['lines'].length] = line;
 
-			 repeaters[link['repeaterid']]['mark']['ws6z_lines'][repeaters[link['repeaterid']]['mark']['ws6z_lines'].length] = line;
+			   repeaters[link['repeaterid']]['mark']['ws6z_lines'][repeaters[link['repeaterid']]['mark']['ws6z_lines'].length] = line;
+			 }
 		   }
 
 		   L.control.layers(null,  { 'Repeaters': repeaterGroup,
@@ -135,18 +137,20 @@
 			 var shown = this.ws6z_shown;
 
 			 for (line in lines) {
-			   //lines[line].hide();
-			   if (shown) {
-				 map.removeLayer(lines[line]);
-			   } else {
-				 map.addLayer(lines[line]);
+			   if (lines.hasOwnProperty(line)) {
+				 //lines[line].hide();
+				 if (shown) {
+				   map.removeLayer(lines[line]);
+				 } else {
+				   map.addLayer(lines[line]);
 
-				 console.log(this);
-				 // pop up the display
-				 var popup = L.popup({ offset: this.ws6z_obj.offset })
-			  				  .setLatLng(this._latlng)
-							  .setContent(this.ws6z_obj.title)
-							  .openOn(map);
+				   console.log(this);
+				   // pop up the display
+				   var popup = L.popup({ offset: this.ws6z_obj.offset })
+			  					.setLatLng(this._latlng)
+							 .setContent(this.ws6z_obj.title)
+							 .openOn(map);
+				 }
 			   }
 			 }
 			 this.ws6z_shown = !shown;

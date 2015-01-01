@@ -46,7 +46,7 @@
 		   var homeIcon = L.icon({
 			 iconUrl: '/icons/building-24@2x.png',
 			 iconSize:   [iconHomeSize,   iconHomeSize],
-			 iconAnchor: [iconHomeSize/2, iconHomeSize/2],
+			 iconAnchor: [iconHomeSize/2, iconHomeSize],
 			 popupAnchor: [iconHomeSize/2, -100],
 		   });
 
@@ -62,6 +62,9 @@
 		   var repeaterLines = [];
 		   for (repeater in repeaters) {
 			 if (repeaters.hasOwnProperty(repeater)) {
+			   repeaters[repeater]['title']  = repeaters[repeater]['repeatercallsign'];
+			   repeaters[repeater]['offset'] = [0, -iconRepeaterSize/2];
+
 			   var repeatMark = 
 				 L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
 						   parseFloat(repeaters[repeater]['repeaterlon'])],
@@ -74,6 +77,7 @@
 			   repeaters[repeater]['mark'] = repeatMark;
 			   repeatMark['ws6z_lines'] = [];
 			   repeatMark['ws6z_shown'] = false;
+			   repeatMark['ws6z_obj'] = repeaters[repeater];
 			   repeatMark.on('click', onMarkerClick);
 			 }
 		   }			 
@@ -85,10 +89,13 @@
 		   var stationLines = [];
 		   for (station in stations) {
 			 if (stations.hasOwnProperty(station)) {
+			   stations[station]['title'] = stations[station]['callsign'] + ": " + stations[station]['locationname'];
+			   stations[station]['offset'] = [0, -iconHomeSize/2];
+
 			   var stationMark = 
 			   L.marker([parseFloat(stations[station]['locationlat']),
 						 parseFloat(stations[station]['locationlon'])],
-						{title: stations[station]['callsign'] + ": " + stations[station]['locationname'],
+						{title: stations[station]['title'],
 						 icon: homeIcon}).addTo(map)
 			   stationLayerObjs[stationLayerObjs.length] = stationMark;
 
@@ -96,6 +103,7 @@
 			   stations[station]['mark'] = stationMark;
 			   stationMark['ws6z_lines'] = [];
 			   stationMark['ws6z_shown'] = false;
+			   stationMark['ws6z_obj'] = stations[station];
 			   stationMark.on('click', onMarkerClick);
 			 }
 		   }
@@ -125,13 +133,20 @@
 			 // 'this' should be a marker
 			 var lines = this.ws6z_lines;
 			 var shown = this.ws6z_shown;
-			 
+
 			 for (line in lines) {
 			   //lines[line].hide();
 			   if (shown) {
 				 map.removeLayer(lines[line]);
 			   } else {
 				 map.addLayer(lines[line]);
+
+				 console.log(this);
+				 // pop up the display
+				 var popup = L.popup({ offset: this.ws6z_obj.offset })
+			  				  .setLatLng(this._latlng)
+							  .setContent(this.ws6z_obj.title)
+							  .openOn(map);
 			   }
 			 }
 			 this.ws6z_shown = !shown;

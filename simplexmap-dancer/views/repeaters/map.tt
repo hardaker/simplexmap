@@ -38,18 +38,19 @@
 			 maxZoom: 18
 		   }).addTo(map);
 
-		   var iconSize = 24;
+		   var iconBaseSize = 24;
+		   var iconHomeSize = iconBaseSize/2;
 
 		   // create the icons
 		   var homeIcon = L.icon({
 			 iconUrl: '/icons/building-24@2x.png',
-			 iconSize:   [iconSize,   iconSize],
-			 iconAnchor: [iconSize/2, iconSize/2],
-			 popupAnchor: [iconSize/2, -100],
+			 iconSize:   [iconHomeSize,   iconHomeSize],
+			 iconAnchor: [iconHomeSize/2, iconHomeSize/2],
+			 popupAnchor: [iconHomeSize/2, -100],
 		   });
 
 		   var repeaterIcon = L.icon({
-			 iconUrl: '/icons/triangle-stroked-24@2x.png',
+			 iconUrl: '/icons/triangle-24@2x.png',
 			 iconSize:   [iconSize,   iconSize],
 			 iconAnchor: [iconSize/2, iconSize],
 			 popupAnchor: [iconSize/2, -100],

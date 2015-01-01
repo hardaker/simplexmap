@@ -39,7 +39,7 @@
 		   }).addTo(map);
 
 		   var iconBaseSize 	= 24;
-		   var iconHomeSize 	= iconBaseSize/2;
+		   var iconHomeSize 	= 2 * iconBaseSize/3;
 		   var iconRepeaterSize = iconBaseSize;
 
 		   // create the icons

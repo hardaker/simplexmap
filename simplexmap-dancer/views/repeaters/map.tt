@@ -38,8 +38,9 @@
 			 maxZoom: 18
 		   }).addTo(map);
 
-		   var iconBaseSize = 24;
-		   var iconHomeSize = iconBaseSize/2;
+		   var iconBaseSize 	= 24;
+		   var iconHomeSize 	= iconBaseSize/2;
+		   var iconRepeaterSize = iconBaseSize;
 
 		   // create the icons
 		   var homeIcon = L.icon({
@@ -51,9 +52,9 @@
 
 		   var repeaterIcon = L.icon({
 			 iconUrl: '/icons/triangle-24@2x.png',
-			 iconSize:   [iconSize,   iconSize],
-			 iconAnchor: [iconSize/2, iconSize],
-			 popupAnchor: [iconSize/2, -100],
+			 iconSize:   [iconRepeaterSize,   iconRepeaterSize],
+			 iconAnchor: [iconRepeaterSize/2, iconRepeaterSize],
+			 popupAnchor: [iconRepeaterSize/2, -100],
 		   });
 		   
 		   // setup the repeater grouping

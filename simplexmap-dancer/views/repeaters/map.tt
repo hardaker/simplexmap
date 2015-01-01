@@ -38,6 +38,23 @@
 			 maxZoom: 18
 		   }).addTo(map);
 
+		   var iconSize = 24;
+
+		   // create the icons
+		   var homeIcon = L.icon({
+			 iconUrl: '/icons/building-24@2x.png',
+			 iconSize:   [iconSize,   iconSize],
+			 iconAnchor: [iconSize/2, iconSize/2],
+			 popupAnchor: [iconSize/2, -100],
+		   });
+
+		   var repeaterIcon = L.icon({
+			 iconUrl: '/icons/triangle-stroked-24@2x.png',
+			 iconSize:   [iconSize,   iconSize],
+			 iconAnchor: [iconSize/2, iconSize],
+			 popupAnchor: [iconSize/2, -100],
+		   });
+		   
 		   // setup the repeater grouping
 		   var repeaterLayerObjs = [];
 		   var repeaterLines = [];
@@ -46,7 +63,8 @@
 			   var repeatMark = 
 				 L.marker([parseFloat(repeaters[repeater]['repeaterlat']),
 						   parseFloat(repeaters[repeater]['repeaterlon'])],
-						  {title: repeaters[repeater]['repeatercallsign']});
+						  {title: repeaters[repeater]['repeatercallsign'],
+						   icon: repeaterIcon});
 
 			   repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
 
@@ -68,7 +86,8 @@
 			   var stationMark = 
 			   L.marker([parseFloat(stations[station]['locationlat']),
 						 parseFloat(stations[station]['locationlon'])],
-						{title: stations[station]['callsign'] + ": " + stations[station]['locationname']}).addTo(map)
+						{title: stations[station]['callsign'] + ": " + stations[station]['locationname'],
+						 icon: homeIcon}).addTo(map)
 			   stationLayerObjs[stationLayerObjs.length] = stationMark;
 
 			   stations[station]['lines'] = [];

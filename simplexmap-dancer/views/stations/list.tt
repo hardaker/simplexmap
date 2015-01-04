@@ -2,7 +2,7 @@
     <div class="col-md-12" role="main">
         <div class="panel panel-default">
             <div class="panel-heading">
-			  Your Current Stations
+			  Registered Stations
 			  <a class="button" href="/stations/new">
 				<span class="glyphicon glyphicon-plus pull-right"
 					  data-toggle="tooltip" data-toggle="tooltip"
@@ -11,17 +11,17 @@
             </div>
             <div class="panel-body">
 			  <table class="table">
-				<tr> <th>Owner</th><th>Name </th> <th>Latitude </th> <th>Longitude </th> <th>Action</th></tr>
+				<tr>
+				  <%- IF mine %><th>Owner</th><% END -%>
+				  <th>Name </th> <th>Latitude </th> <th>Longitude </th></tr>
 				<% FOREACH item IN list %>
 				<tr>
-				  <td><% item.callsign %>
+				  <%- IF mine %><td><% item.callsign %></td><% END -%>
 				  <td><% item.locationname %>
 				  </td>
 				  <td><% item.locationlat %>
 				  </td>
 				  <td><% item.locationlon %>
-				  </td>
-				  <td>x
 				  </td>
 				</tr>
 				<% END %>

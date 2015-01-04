@@ -72,7 +72,11 @@ function createmap(lat, lon, repeaters, stations, links) {
 	var stationLines = [];
 	for (station in stations) {
 		if (stations.hasOwnProperty(station)) {
-			stations[station]['title'] = stations[station]['callsign'] + ": " + stations[station]['locationname'];
+			stations[station]['title'] =
+				"<strong><a href=\"/stations/" + stations[station]['locationid'] + "\">" +
+				stations[station]['callsign'] + ": " +
+				stations[station]['locationname'] + "</a></strong><br />";
+
 			stations[station]['offset'] = [0, -iconHomeSize/2];
 
 			var stationMark = 

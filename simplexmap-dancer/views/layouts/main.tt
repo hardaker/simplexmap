@@ -43,15 +43,16 @@
 			<ul class="nav navbar-nav">
 			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Stations<span class="caret"></span> </a>
 				<ul class="dropdown-menu so-scrollable">
-				  <li><a href="/stations">List All Stations</a></li>
-				  <li><a href="/stations?mine=1">List My Stations</a></li>
+				  <li><a href="/stations">List all stations</a></li>
+				  <li><a href="/stations?mine=1">List my stations</a></li>
+				  <li><a href="/stations/new">Create a new station</a></li>
 				</ul>
 			  </li>
 
 			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Repeaters<span class="caret"></span> </a>
 				<ul class="dropdown-menu so-scrollable">
 				  <li><a href="/repeaters">Repeater list</a></li>
-				  <li><a href="/repeaters/signals">Report Signals</a></li>
+				  <li><a href="/repeaters/signals">Report signals</a></li>
 				  <li><a href="/repeaters/new">Add a new repeater</a></li>
 				</ul>
 			  </li>

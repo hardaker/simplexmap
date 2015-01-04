@@ -9,9 +9,40 @@
 		<form action="/stations" method="post">
 		  <div class="input-group">
             <span class="input-group-addon">A Name For Your Station</span>
-			<input name="identifier" type="text" class="form-control" placeholder="my home"/>
+			<input name="name" type="text" class="form-control" placeholder="my home"/>
 			<% IF messages.identifier %><p class="error"><% messages.identifier %></p><% END %>
 		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">Visibility</span>
+			<select name="visibility">
+			  <option value="private">Private</option>
+			  <option value="friends">Friends</option>
+			  <option value="friendsandgroups">Frinds and Groups</option>
+			  <option value="public" selected>public</option>
+			</select>
+			<% IF messages.visibility %><p class="error"><% messages.visibility %></p><% END %>
+		  </div>
+
+		  <br />
+
+		  <div class="input-group">
+            <span class="input-group-addon">Tranceiver Info</span>
+	    	<input name="transmitter" id="transmitter" type="text" class="form-control" placeholder="Kenwood blah and 50 watts" />
+			<% IF messages.transmitter %><p class="error"><% messages.transmitter %></p><% END %>
+            </span>
+		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">Antenna Info</span>
+	    	<input name="antenna" id="antenna" type="text" class="form-control" placeholder="J-pole at 25 feet" />
+			<% IF messages.antenna %><p class="error"><% messages.antenna %></p><% END %>
+            </span>
+		  </div>
+
+		  <br />
+		  
+		  <em>You can also relocate the icon on the map below to set the latitude and longitude.</em>
 		  <div class="input-group">
             <span class="input-group-addon">Latitude <em>(North = +, South = -)</em></span>
 			<input id="latitude" name="latitude" type="text" class="form-control" placeholder="38.55"/>
@@ -21,16 +52,6 @@
             <span class="input-group-addon">Longitude <em>(East = +, West = -)</em></span>
 			<input id="longitude" name="longitude" type="text" class="form-control" placeholder="-121.7"/>
 			<% IF messages.longitude %><p class="error"><% messages.longitude %></p><% END %>
-		  </div>
-
-		  <div class="input-group">
-            <span class="input-group-addon">Visibility</span>
-			<select>
-			  <option value="private">Private</option>
-			  <option value="friends">Friends</option>
-			  <option value="friendsandgroups">Frinds and Groups</option>
-			  <option value="public" selected>public</option>
-			</select>
 		  </div>
 
 		  <br />

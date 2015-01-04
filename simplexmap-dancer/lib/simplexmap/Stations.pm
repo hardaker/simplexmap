@@ -29,29 +29,39 @@ post '/stations' => sub {
 	debug("-------------- here top");
 
 	my $results = 
-	  dfv({ required => ['latitude', 'longitude', 'identifier'],
+	  dfv({ required => ['latitude', 'longitude', 'name', 'visibility'],
+	        optional => ['antenna', 'transmitter'],
 	        filters => 'trim',
 	        constraint_methods => 
 	        {
 	         latitude       => qr/^[-+]?[0-9]+\.[0-9]+$/,
 	         longitude      => qr/^[-+]?[0-9]+\.[0-9]+$/,
+	         visibility     => qr/^(private|friends|friendsandgroups|public)$/,
 	        }
 	      });
 
 	if ($results->has_invalid || $results->has_missing) {
-		debug("fail");
+		debug("fail submit");
 		debug($results->msgs);
 		return template 'stations/new' => { messages => $results->msgs };
 	}
 
 	my $vals = $results->valid;
 
-	debug("-------------- here");
+	my %privmap = (
+	               public  => 'P',
+	               private => 'M',
+	               friendsandgroups => 'G',
+	               friends => 'F'
+	              );
+	$vals->{'visibility'} = $privmap{$vals->{'visibility'}};
 
 	my $insh = database()->prepare_cached("
-       insert into locations (locationperson, locationname, locationlat, locationlon)
-                      values (?, ?, ?, ?)");
-	$insh->execute(session('user'), $vals->{'identifier'}, $vals->{'latitude'}, $vals->{'longitude'});
+       insert into locations (locationperson, locationname, locationlat, locationlon,
+                              locationtransmiter, locationattenna, locationprivacy)
+                      values (?, ?, ?, ?, ?, ?, ?)");
+	$insh->execute(session('user'), $vals->{'name'}, $vals->{'latitude'}, $vals->{'longitude'},
+	               $vals->{'transmitter'}, $vals->{'antenna'}, $vals->{'visibility'});
 
 	redirect '/stations';
 };

@@ -78,8 +78,9 @@ if ($opts{'c'}) {
       locationid          int(11) NOT NULL auto_increment primary key,
       locationperson      int,
       locationname        varchar(64),
-      locationAttenna     varchar(4096),
-      locationTransmiter  varchar(4096),
+      locationattenna     varchar(4096),
+      locationtransmiter  varchar(4096),
+      locationprivacy     CHAR,			
       locationtype        varchar(64),
       locationlat         varchar(4096),
       locationlon         varchar(4096),
@@ -88,6 +89,18 @@ if ($opts{'c'}) {
       locationstate       varchar(4096),
       locationzip         int
 )");
+# privacy values:
+#   M: mine only
+#   F: friends
+#   G: friends and groups
+#   P: public
+
+# alter table locations add column locationattenna     varchar(4096);
+# alter table locations add column locationtransmiter  varchar(4096);
+# alter table locations add column locationprivacy     CHAR;
+# update locations set locationprivacy = 'P'; 
+
+
 
 $dbh->do("create table repeaters(
       repeaterid          int(11) NOT NULL auto_increment primary key,

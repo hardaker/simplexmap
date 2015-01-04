@@ -28,9 +28,8 @@
 			<select>
 			  <option value="private">Private</option>
 			  <option value="friends">Friends</option>
-			  <option value="groups">Friends and Groups</option>
 			  <option value="friendsandgroups">Frinds and Groups</option>
-			  <option value="friendsandgroups" selected>Public</option>
+			  <option value="public" selected>public</option>
 			</select>
 		  </div>
 

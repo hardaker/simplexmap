@@ -13,8 +13,10 @@ use Data::FormValidator::Constraints qw(:closures);
 get '/repeaters' => sub {
 	my $listh = database()->prepare_cached("select * from repeaters
                                          left join people  
-                                                on repeaterowner = people.id"); # XXX: limit by distance from station location
-	$listh->execute();
+                                                on repeaterowner = people.id
+                                             where repeaterpublic = 'Y'
+                                                or repeaterowner = ?"); # XXX: limit by distance from station location
+	$listh->execute(session('user'));
 	my $repeaters = $listh->fetchall_arrayref({});
 
 	template 'repeaters/list' => { repeaters => $repeaters };
@@ -126,9 +128,10 @@ get '/repeaters/signals' => sub {
             from repeaters
        left join repeatersignals
               on repeaters.repeaterid = repeatersignals.repeaterid
-                 and listeningStation = ?");
+                 and listeningStation = ?
+           where repeaterpublic = 'Y' or repeaterowner = ?");
 
-	$listh->execute($station->{'locationid'});
+	$listh->execute($station->{'locationid'}, session('user'));
 	my $list = $listh->fetchall_arrayref({});
 
 	template 'repeaters/signals' => { list => $list,
@@ -142,8 +145,10 @@ post '/repeaters/signals' => sub {
 	my $station = get_station_num();
 	redirect '/repeaters/signalstart' if (!$station);
 	
-	my $listh = database()->prepare_cached("select * from repeaters"); # XXX: limit by distance from station location
-	$listh->execute();
+	my $listh = database()->prepare_cached("select * from repeaters
+                                             where repeaterpublic = 'Y'
+                                                or repeaterowner = ?"); # XXX: limit by distance from station location
+	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
 	
 	my $uph = database()->prepare_cached("update repeatersignals
@@ -178,8 +183,9 @@ post '/repeaters/signals' => sub {
 # Repeater Map
 get '/repeaters/map' => sub {
 	# get all the repeaters
-	my $repeatersh = database()->prepare_cached("select * from repeaters");
-	$repeatersh->execute();
+	my $repeatersh = database()->prepare_cached("select * from repeaters
+                                                  where repeaterpublic = 'Y' or repeaterowner = ?");
+	$repeatersh->execute(session('user'));
 	my $allrepeaters = $repeatersh->fetchall_hashref('repeaterid');
 	$allrepeaters = to_json($allrepeaters);
 
@@ -198,7 +204,8 @@ get '/repeaters/map' => sub {
             from repeatersignals
       inner join locations on locationId = listeningStation
       inner join repeaters on repeaters.repeaterid = repeatersignals.repeaterid
-           where repeaterStrength is not null and repeaterStrength > -1");
+           where repeaterStrength is not null and repeaterStrength > -1
+             and repeaterpublic = 'Y' or repeaterowner = ?");
 	warn(database()->errstr) if (!$listh);
 
 	# find the first station that the user owns, if any, to center the map on
@@ -215,7 +222,7 @@ get '/repeaters/map' => sub {
 		           };
 	}
 
-	$listh->execute();
+	$listh->execute(session('user'));
 	my $links = $listh->fetchall_arrayref({});
 
 	$links = to_json($links);
@@ -235,8 +242,10 @@ get '/repeaters/:num' => sub {
 	}
 
 	my $listh = database()->prepare_cached("select * from repeaters
-                                             where repeaterid = ?");
-	$listh->execute($num);
+                                             where repeaterid = ?
+                                               and (repeaterpublic = 'Y'
+                                                    or repeaterowner = ?)");
+	$listh->execute($num, session('user'));
 	my $repeater = $listh->fetchrow_hashref();
 	$listh->finish;
 

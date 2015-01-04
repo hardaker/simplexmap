@@ -58,12 +58,38 @@ post '/stations' => sub {
 
 	my $insh = database()->prepare_cached("
        insert into locations (locationperson, locationname, locationlat, locationlon,
-                              locationtransmiter, locationattenna, locationprivacy)
+                              locationtransmiter, locationantenna, locationprivacy)
                       values (?, ?, ?, ?, ?, ?, ?)");
 	$insh->execute(session('user'), $vals->{'name'}, $vals->{'latitude'}, $vals->{'longitude'},
 	               $vals->{'transmitter'}, $vals->{'antenna'}, $vals->{'visibility'});
 
 	redirect '/stations';
 };
+
+######################################################################
+# repeater details
+get '/stations/:num' => sub {
+	my $num = param('num');
+	if ($num !~ /^[0-9]+$/) {
+		return template 'error' => { error => "illegal URL" }
+	}
+
+	my $listh = database()->prepare_cached("select * from locations
+                                         left join people
+                                                on people.id = locations.locationperson
+                                             where locationid = ?
+                                               and (locationprivacy = 'P'
+                                                    or locationperson = ?)");
+	$listh->execute($num, session('user'));
+	my $repeater = $listh->fetchrow_hashref();
+	$listh->finish;
+
+	if (!$repeater) {
+		return template 'error' => { error => "Unknown repeater" }
+	}
+   
+	template 'stations/details' => { location => $repeater };
+};
+
 
 1;

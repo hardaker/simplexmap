@@ -17,7 +17,7 @@
 				<% FOREACH item IN list %>
 				<tr>
 				  <%- IF ! mine %><td><% item.callsign %></td><% END -%>
-				  <td><% item.locationname %>
+				  <td><a href="/stations/<% item.locationid %>"><% item.locationname %></a>
 				  </td>
 				  <td><% item.locationlat %>
 				  </td>

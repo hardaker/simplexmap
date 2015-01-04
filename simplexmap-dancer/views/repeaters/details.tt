@@ -2,7 +2,7 @@
     <div class="col-md-12" role="main">
         <div class="panel panel-default">
           <div class="panel-heading">
-			Details for repeater: <% repeater.name %>
+			Details for repeater: <% repeater.repeatername %>
 			</div>
             <div class="panel-body">
 			  <table class="table">

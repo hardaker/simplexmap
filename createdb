@@ -78,7 +78,7 @@ if ($opts{'c'}) {
       locationid          int(11) NOT NULL auto_increment primary key,
       locationperson      int,
       locationname        varchar(64),
-      locationattenna     varchar(4096),
+      locationanttenna     varchar(4096),
       locationtransmiter  varchar(4096),
       locationprivacy     CHAR,			
       locationtype        varchar(64),
@@ -95,7 +95,7 @@ if ($opts{'c'}) {
 #   G: friends and groups
 #   P: public
 
-# alter table locations add column locationattenna     varchar(4096);
+# alter table locations add column locationanttenna     varchar(4096);
 # alter table locations add column locationtransmiter  varchar(4096);
 # alter table locations add column locationprivacy     CHAR;
 # update locations set locationprivacy = 'P'; 

@@ -62,7 +62,15 @@
    var repeaterLines = [];
    for (repeater in repeaters) {
 	 if (repeaters.hasOwnProperty(repeater)) {
-	   repeaters[repeater]['title']  = repeaters[repeater]['repeatercallsign'];
+	   repeaters[repeater]['title']  =
+	   "<strong>" + repeaters[repeater]['repeatername'] + "</strong><br />" +
+	   repeaters[repeater]['repeatercallsign'] + "<br />" +
+	   repeaters[repeater]['repeaterfreq'] + " / " +
+	   repeaters[repeater]['repeateroffset'] +
+	   (repeaters[repeater]['repeaterpl'] ? (" PL: " + repeaters[repeater]['repeaterpl']) : "") +
+	   (repeaters[repeater]['repeaterdcs'] ? (" DCS: " + repeaters[repeater]['repeaterdcs']) : "") + "<br />" +
+	   repeaters[repeater]['repeaternotes']
+	   ;
 	   repeaters[repeater]['offset'] = [0, -iconRepeaterSize/2];
 
 	   var repeatMark = 
@@ -135,25 +143,32 @@
 	 // 'this' should be a marker
 	 var lines = this.ws6z_lines;
 	 var shown = this.ws6z_shown;
+	 var showpopup = false;
 
+	 if (lines.length == 0) {
+	   showpopup = true;
+	 }
+	 
 	 for (line in lines) {
 	   if (lines.hasOwnProperty(line)) {
-	   //lines[line].hide();
-	   if (shown) {
-		 map.removeLayer(lines[line]);
-	   } else {
-		 map.addLayer(lines[line]);
+		 //lines[line].hide();
+		 if (shown) {
+		   map.removeLayer(lines[line]);
+		 } else {
+		   map.addLayer(lines[line]);
+		   // pop up the display
+		   showpopup = true;
+		 }
+	   }
+	 }
 
-		 console.log(this);
-		 // pop up the display
-		 var popup = L.popup({ offset: this.ws6z_obj.offset })
-	  				  .setLatLng(this._latlng)
-					  .setContent(this.ws6z_obj.title)
-					  .openOn(map);
-	   }
-	   }
-	   }
-	   
+	 if (showpopup) {
+		   var popup = L.popup({ offset: this.ws6z_obj.offset })
+	  					.setLatLng(this._latlng)
+					 .setContent(this.ws6z_obj.title)
+					 .openOn(map);
+	 }
+	 
 	 this.ws6z_shown = !shown;
    }
 

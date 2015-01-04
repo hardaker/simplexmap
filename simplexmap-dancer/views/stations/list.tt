@@ -12,11 +12,11 @@
             <div class="panel-body">
 			  <table class="table">
 				<tr>
-				  <%- IF mine %><th>Owner</th><% END -%>
+				  <%- IF ! mine %><th>Owner</th><% END -%>
 				  <th>Name </th> <th>Latitude </th> <th>Longitude </th></tr>
 				<% FOREACH item IN list %>
 				<tr>
-				  <%- IF mine %><td><% item.callsign %></td><% END -%>
+				  <%- IF ! mine %><td><% item.callsign %></td><% END -%>
 				  <td><% item.locationname %>
 				  </td>
 				  <td><% item.locationlat %>

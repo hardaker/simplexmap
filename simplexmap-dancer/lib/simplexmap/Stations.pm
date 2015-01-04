@@ -18,7 +18,7 @@ get '/stations' => sub {
 	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
 	
-	template 'stations/list.tt' => { list => $list, mine => param('mine') ? 1 : 0 }; 
+	template 'stations/list.tt' => { list => $list, mine => (param('mine') ? 1 : 0) }; 
 };
 
 get '/stations/new' => sub {

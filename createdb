@@ -78,6 +78,8 @@ if ($opts{'c'}) {
       locationid          int(11) NOT NULL auto_increment primary key,
       locationperson      int,
       locationname        varchar(64),
+      locationAttenna     varchar(4096),
+      locationTransmiter  varchar(4096),
       locationtype        varchar(64),
       locationlat         varchar(4096),
       locationlon         varchar(4096),
@@ -91,9 +93,14 @@ $dbh->do("create table repeaters(
       repeaterid          int(11) NOT NULL auto_increment primary key,
       repeaterowner       int,
       repeatercallsign    varchar(16),
+      repeatername        varchar(128),
       repeaternotes       varchar(4096),
       repeaterlat         varchar(4096),
-      repeaterlon         varchar(4096)
+      repeaterlon         varchar(4096),
+      repeaterFreq        varchar(128),
+      repeaterOffset      CHAR,
+      repeaterPL          varchar(32),
+      repeaterDCS         varchar(32)                       
   )");
 
     $dbh->do("create table eventmembers

@@ -36,13 +36,19 @@ post '/repeaters' => sub {
 	debug("-------------- here top");
 
 	my $results = 
-	  dfv({ required => ['latitude', 'longitude', 'identifier', 'callsign'],
+	  dfv({ required => ['name', 'callsign', 'latitude', 'longitude', 'visibility'],
+	        optional => [qw(frequency offset pltone dcstone notes)],
 	        filters => 'trim',
 	        constraint_methods => 
 	        {
 	         latitude       => qr/^[-+]?[0-9]+\.[0-9]+$/,
 	         longitude      => qr/^[-+]?[0-9]+\.[0-9]+$/,
 	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         visibility     => qr/^(private|public)$/,
+	         frequency      => qr/^[0-9]+\.[0-9]+\s*[a-zA-Z]*$/,
+	         offset         => qr/^(\+|-)$/,
+	         pltone         => qr/^[0-9]+\.[0-9]+$/,
+	         dcstone        => qr/^[0-9]+$/,
 	        }
 	      });
 
@@ -55,11 +61,16 @@ post '/repeaters' => sub {
 	my $vals = $results->valid;
 
 	my $insh = database()->prepare_cached("
-       insert into repeaters (repeaternotes, repeaterowner, repeatercallsign, repeaterlat, repeaterlon)
-                      values (?, ?, ?, ?, ?)");
-	$insh->execute($vals->{'identifier'}, session('user'), $vals->{'callsign'}, $vals->{'latitude'}, $vals->{'longitude'});
+       insert into repeaters (repeaterowner, repeatername, repeatercallsign, repeaterlat, repeaterlon,
+                              repeaternotes, repeaterpublic, repeaterfreq, repeateroffset,
+                              repeaterpl, repeaterdcs)
+                      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$insh->execute(session('user'), $vals->{'name'}, $vals->{'callsign'}, $vals->{'latitude'}, $vals->{'longitude'},
+	               $vals->{'notes'},
+	               ($vals->{'visibility'} eq 'public' ? 'Y' : 'N'), $vals->{'frequency'}, $vals->{'offset'},
+	               $vals->{'pltone'}, $vals->{'dcstone'});
 
-	redirect '/repeaters';
+	redirect '/repeaters/list';
 };
 
 ######################################################################
@@ -72,7 +83,7 @@ get '/repeaters/signalstart' => sub {
 	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
 
-	redirect '/stations/new' if ($#$list == -1);
+	redirect '/repeaters/new' if ($#$list == -1);
 
 	template 'repeaters/signalstart' => { stations => $list };
 };

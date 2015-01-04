@@ -97,11 +97,23 @@ $dbh->do("create table repeaters(
       repeaternotes       varchar(4096),
       repeaterlat         varchar(4096),
       repeaterlon         varchar(4096),
-      repeaterFreq        varchar(128),
-      repeaterOffset      CHAR,
-      repeaterPL          varchar(32),
-      repeaterDCS         varchar(32)                       
+      repeaterfreq        varchar(128),
+      repeateroffset      CHAR,
+      repeaterpl          varchar(32),
+      repeaterdcs         varchar(32),
+      repeaterpublic      CHAR,
   )");
+
+# alter table repeaters add column repeatername        varchar(128);
+# alter table repeaters add column   repeaterfreq        varchar(128);
+# alter table repeaters add column   repeateroffset      CHAR;
+# alter table repeaters add column   repeaterpl          varchar(32);
+# alter table repeaters add column   repeaterdcs         varchar(32);
+# alter table repeaters add column   repeaterpublic      CHAR;
+# update repeaters set repeatername = repeaternotes;
+# update repeaters set repeaternotes = "";
+
+
 
     $dbh->do("create table eventmembers
 (

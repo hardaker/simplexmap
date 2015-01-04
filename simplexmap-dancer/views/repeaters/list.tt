@@ -9,7 +9,7 @@
 				<tr> <th>Name </th> <th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Created By</th></tr>
 				<% FOREACH repeater IN repeaters %>
 				<tr>
-				  <td><% repeater.repeaternotes %>
+				  <td><% repeater.repeatername %>
 				  </td>
 				  <td><% repeater.repeatercallsign %>
 				  </td>

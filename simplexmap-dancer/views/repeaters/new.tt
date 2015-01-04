@@ -6,20 +6,77 @@
       </div>
       <div class="panel-body">
 		<div class="alert alert-warning">
-		  Do not create a new repeater if you don't know where it's transmitting antenna is located
+		  Do not create a new repeater if you don't know where it's transmitting antenna is located.
+		  You may be able to find repeater location info either in sites like the
+		  <a href="http://www.repeaterbook.com/repeaters/index.php?state_id=none#sthash.WqDZSWLl.dpbs">Repeater Book</a>
+
 		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 		</div>
 		<form action="/repeaters" method="post">
 		  <div class="input-group">
             <span class="input-group-addon">A Name For It</span>
-			<input name="identifier" type="text" class="form-control" placeholder="my home"/>
-			<% IF messages.identifier %><p class="error"><% messages.identifier %></p><% END %>
+			<input name="name" type="text" class="form-control" placeholder="club HAM repeater"/>
+			<% IF messages.name %><p class="error"><% messages.name %></p><% END %>
 		  </div>
 		  <div class="input-group">
             <span class="input-group-addon">Callsign</span>
-			<input name="callsign" type="text" class="form-control" placeholder="my home"/>
+			<input name="callsign" type="text" class="form-control" placeholder="AB6CDE"/>
 			<% IF messages.callsign %><p class="error"><% messages.callsign %></p><% END %>
 		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">Visibility</span>
+			<select name="visibility">
+			  <option value="private">Private</option>
+			  <option value="public" selected>Public</option>
+			</select>
+		  </div>
+
+		  <br />
+
+		  <div class="input-group">
+            <span class="input-group-addon">Frequency</span>
+	    	<input name="frequency" id="frequency" type="text" class="form-control" placeholder="147.000 MHz" />
+            </span>
+			<% IF messages.frequency %><p class="error"><% messages.frequency %></p><% END %>
+		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">Offset</span>
+			<select name="offset">
+			  <option value="+">+</option>
+			  <option value="-">-</option>
+			</select>
+			<% IF messages.offset %><p class="error"><% messages.offset %></p><% END %>
+            </span>
+		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">PL Tone</span>
+	    	<input name="pltone" id="pltone" type="text" class="form-control" placeholder="123.0" />
+			<% IF messages.pltone %><p class="error"><% messages.pltone %></p><% END %>
+            </span>
+		  </div>
+
+		  <div class="input-group">
+            <span class="input-group-addon">DCS Tone</span>
+	    	<input name="dcstone" id="dcstone" type="text" class="form-control" placeholder="23" />
+			<% IF messages.dcstone %><p class="error"><% messages.dcstone %></p><% END %>
+            </span>
+		  </div>
+
+		  <br />
+
+		  <div class="input-group">
+            <span class="input-group-addon">Notes</span>
+	    	<input name="notes" id="notes" type="text" class="form-control" placeholder="Any other notes about the repeater" />
+			<% IF messages.notes %><p class="error"><% messages.notes %></p><% END %>
+            </span>
+		  </div>
+
+		  <br />
+
+		  <em>You can also relocate the icon on the map below to set the latitude and longitude.</em>
 		  <div class="input-group">
             <span class="input-group-addon">Latitude <em>(North = +, South = -)</em></span>
 			<input id="latitude" name="latitude" type="text" class="form-control" placeholder="38.55"/>
@@ -31,13 +88,6 @@
 			<% IF messages.longitude %><p class="error"><% messages.longitude %></p><% END %>
 		  </div>
 
-		  <div class="input-group">
-            <span class="input-group-addon">Visibility</span>
-			<select>
-			  <option value="private">Private</option>
-			  <option value="public" selected>Public</option>
-			</select>
-		  </div>
 
 		  <br />
 		  <button type="submit" class="btn btn-primary">Create This Repeater</button>

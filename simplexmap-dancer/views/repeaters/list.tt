@@ -6,10 +6,12 @@
 			</div>
             <div class="panel-body">
 			  <table class="table">
-				<tr> <th>Name </th> <th>Latitude </th> <th>Longitude </th><th>Created By</th></tr>
+				<tr> <th>Name </th> <th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Created By</th></tr>
 				<% FOREACH repeater IN repeaters %>
 				<tr>
 				  <td><% repeater.repeaternotes %>
+				  </td>
+				  <td><% repeater.repeatercallsign %>
 				  </td>
 				  <td><% repeater.repeaterlat %>
 				  </td>

@@ -2,25 +2,17 @@
     <div class="col-md-12" role="main">
         <div class="panel panel-default">
           <div class="panel-heading">
-			Repeaters in the system
+			Details for repeater: <% repeater.name %>
 			</div>
             <div class="panel-body">
 			  <table class="table">
-				<tr> <th>Name </th> <th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Created By</th></tr>
-				<% FOREACH repeater IN repeaters %>
-				<tr>
-				  <td><a href="/repeaters/<% repeater.repeaterid %>"><% repeater.repeatername %></a>
-				  </td>
-				  <td><% repeater.repeatercallsign %>
-				  </td>
-				  <td><% repeater.repeaterlat %>
-				  </td>
-				  <td><% repeater.repeaterlon %>
-				  </td>
-				  <td><% repeater.callsign %>
-				  </td>
-				</tr>
-				<% END %>
+				<tr> <th> Name </th><td><% repeater.repeatername %></td></tr>
+				<tr> <th> Callsign </th><td><% repeater.repeatercallsign %></td></tr>
+				<tr> <th> Frequency </th><td><% repeater.repeaterfreq %></td></tr>
+				<tr> <th> Offset </th><td><% repeater.repeateroffset %></td></tr>
+				<tr> <th> PL Tone </th><td><% repeater.repeaterpl %></td></tr>
+				<tr> <th> DCS Code </th><td><% repeater.repeaterdcs %></td></tr>
+				<tr> <th> Notes </th><td><% repeater.repeaternotes %></td></tr>
 			  </table>
             </div>
         </div>

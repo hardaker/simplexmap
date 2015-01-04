@@ -7,18 +7,10 @@ use Dancer::Plugin::Database;
 use Dancer::Plugin::DataFormValidator;
 use Data::FormValidator::Constraints qw(:closures);
 
-get '/repeaters' => sub {
-	my $listh = database()->prepare_cached("select * from repeaters where repeaterowner = ?");
-	$listh->execute(session('user'));
-	my $list = $listh->fetchall_arrayref({});
-	
-	template 'repeaters' => { list => $list }; 
-};
-
 ######################################################################
 # New repeaters
 
-get '/repeaters/list' => sub {
+get '/repeaters' => sub {
 	my $listh = database()->prepare_cached("select * from repeaters
                                          left join people  
                                                 on repeaterowner = people.id"); # XXX: limit by distance from station location
@@ -215,5 +207,27 @@ get '/repeaters/map' => sub {
 	                              stations => $allstations,
 	                              links => $links };
 };
+
+######################################################################
+# repeater details
+get '/repeaters/:num' => sub {
+	my $num = param('num');
+	if ($num !~ /^[0-9]+$/) {
+		return template 'error' => { error => "illegal URL" }
+	}
+
+	my $listh = database()->prepare_cached("select * from repeaters
+                                             where repeaterid = ?");
+	$listh->execute($num);
+	my $repeater = $listh->fetchrow_hashref();
+	$listh->finish;
+
+	if (!$repeater) {
+		return template 'error' => { error => "Unknown repeater" }
+	}
+   
+	template 'repeaters/details' => { repeater => $repeater };
+};
+
 
 1;

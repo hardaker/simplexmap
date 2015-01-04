@@ -45,7 +45,7 @@
 
 			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Repeaters<span class="caret"></span> </a>
 				<ul class="dropdown-menu so-scrollable">
-				  <li><a href="/repeaters/list">Repeater list</a></li>
+				  <li><a href="/repeaters">Repeater list</a></li>
 				  <li><a href="/repeaters/signals">Report Signals</a></li>
 				  <li><a href="/repeaters/new">Add a new repeater</a></li>
 				</ul>

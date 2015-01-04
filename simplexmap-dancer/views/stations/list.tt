@@ -11,9 +11,10 @@
             </div>
             <div class="panel-body">
 			  <table class="table">
-				<tr> <th>Name </th> <th>Latitude </th> <th>Longitude </th> <th>Action</th></tr>
+				<tr> <th>Owner</th><th>Name </th> <th>Latitude </th> <th>Longitude </th> <th>Action</th></tr>
 				<% FOREACH item IN list %>
 				<tr>
+				  <td><% item.callsign %>
 				  <td><% item.locationname %>
 				  </td>
 				  <td><% item.locationlat %>

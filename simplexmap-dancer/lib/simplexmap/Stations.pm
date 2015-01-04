@@ -6,11 +6,19 @@ use Dancer::Plugin::DataFormValidator;
 use Data::FormValidator::Constraints qw(:closures);
 
 get '/stations' => sub {
-	my $listh = database()->prepare_cached("select * from locations where locationperson = ?");
+	my $listh;
+	if (param('mine')) {
+		$listh = database()->prepare_cached("select * from locations where locationperson = ?");
+	} else {
+		$listh = database()->prepare_cached("select * from locations
+                                         inner join people on locationperson = people.id 
+                                                where locationprivacy = 'P' or locationperson = ?");
+	}
+
 	$listh->execute(session('user'));
 	my $list = $listh->fetchall_arrayref({});
 	
-	template 'stations' => { list => $list }; 
+	template 'stations/list.tt' => { list => $list }; 
 };
 
 get '/stations/new' => sub {

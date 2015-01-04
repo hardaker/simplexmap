@@ -177,18 +177,21 @@ post '/repeaters/signals' => sub {
 ######################################################################
 # Repeater Map
 get '/repeaters/map' => sub {
+	# get all the repeaters
 	my $repeatersh = database()->prepare_cached("select * from repeaters");
 	$repeatersh->execute();
 	my $allrepeaters = $repeatersh->fetchall_hashref('repeaterid');
 	$allrepeaters = to_json($allrepeaters);
 
+	# get all the stations
 	my $stationsh = database()->prepare_cached("select * from locations
                                             inner join people
                                                     on locations.locationperson = people.id");
 	$stationsh->execute();
 	my $allstations = $stationsh->fetchall_hashref('locationid');
 	$allstations = to_json($allstations);
-	
+
+	# fetch all the links
 	my $listh = database()->prepare_cached(
     	 "select repeaters.repeaterid, listeningStation, repeaterStrength, sendingStrength,
                  locationlat, locationlon, repeaterlat, repeaterlon
@@ -198,6 +201,20 @@ get '/repeaters/map' => sub {
            where repeaterStrength is not null and repeaterStrength > -1");
 	warn(database()->errstr) if (!$listh);
 
+	# find the first station that the user owns, if any, to center the map on
+	my $stationh = database()->prepare_cached("select * from locations where locationperson = ? limit 1");
+	$stationh->execute(session('user'));
+	my $station = $stationh->fetchrow_hashref();
+	$stationh->finish;
+
+	if (!$station) {
+		# they haven't logged one; fake one in davis
+		$station = {
+		            locationlat => 38.55,
+		            locationlon => -121.7,
+		           };
+	}
+
 	$listh->execute();
 	my $links = $listh->fetchall_arrayref({});
 
@@ -205,7 +222,8 @@ get '/repeaters/map' => sub {
 
 	template 'repeaters/map' => { repeaters => $allrepeaters,
 	                              stations => $allstations,
-	                              links => $links };
+	                              links => $links,
+	                              centeron => $station};
 };
 
 ######################################################################

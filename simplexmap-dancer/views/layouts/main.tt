@@ -41,7 +41,12 @@
 		  <% IF session.callsign %>
           <div class="collapse navbar-collapse" id="navbar-collapse-1">
 			<ul class="nav navbar-nav">
-			  <li><a href="/stations">My Stations</a></li>
+			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Stations<span class="caret"></span> </a>
+				<ul class="dropdown-menu so-scrollable">
+				  <li><a href="/stations">List All Stations</a></li>
+				  <li><a href="/stations?mine=1">List My Stations</a></li>
+				</ul>
+			  </li>
 
 			  <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Repeaters<span class="caret"></span> </a>
 				<ul class="dropdown-menu so-scrollable">

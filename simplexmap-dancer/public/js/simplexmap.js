@@ -38,13 +38,13 @@ function createmap(lat, lon, repeaters, stations, links) {
 	for (repeater in repeaters) {
 		if (repeaters.hasOwnProperty(repeater)) {
 			repeaters[repeater]['title']  =
-				"<strong>" + repeaters[repeater]['repeatername'] + "</strong><br />" +
+				"<strong><a href=\"/repeaters/" + repeaters[repeater]['repeaterid'] + "\">" +
+				repeaters[repeater]['repeatername'] + "</a></strong><br />" +
 				repeaters[repeater]['repeatercallsign'] + "<br />" +
 				repeaters[repeater]['repeaterfreq'] + " / " +
 				repeaters[repeater]['repeateroffset'] +
 				(repeaters[repeater]['repeaterpl'] ? (" PL: " + repeaters[repeater]['repeaterpl']) : "") +
-				(repeaters[repeater]['repeaterdcs'] ? (" DCS: " + repeaters[repeater]['repeaterdcs']) : "") + "<br />" +
-				repeaters[repeater]['repeaternotes']
+				(repeaters[repeater]['repeaterdcs'] ? (" DCS: " + repeaters[repeater]['repeaterdcs']) : "") + "<br />"
 			;
 			repeaters[repeater]['offset'] = [0, -iconRepeaterSize/2];
 

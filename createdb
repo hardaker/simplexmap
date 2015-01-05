@@ -95,7 +95,7 @@ if ($opts{'c'}) {
 #   G: friends and groups
 #   P: public
 
-# alter table locations add column locationanttenna     varchar(4096);
+# alter table locations add column locationantenna     varchar(4096);
 # alter table locations add column locationtransmiter  varchar(4096);
 # alter table locations add column locationprivacy     CHAR;
 # update locations set locationprivacy = 'P'; 
@@ -151,5 +151,12 @@ $dbh->do("create table repeatersignals
       listeningStation          int,
       repeaterStrength          int,
       sendingStrength           int
+)");
+
+$dbh->do("create table simplexsignals
+(
+      receiverid                int,
+      transmitterid             int,
+      signallevel               int
 )");
 

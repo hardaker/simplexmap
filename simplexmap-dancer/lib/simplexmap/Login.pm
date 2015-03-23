@@ -189,6 +189,7 @@ get '/login/reset' => sub {
 	debug("resetting: " . (param('callsign') || "no call") . " with " . (param('code') || 'no val'));
 
 	if (my $row = $sth->fetchrow_hashref()) {
+		$sth->finish;
 		return template '/login/reset_password.tt' =>
 		  {
 		   code => param('code'),
@@ -197,6 +198,7 @@ get '/login/reset' => sub {
 	}
 
 	# failure
+	$sth->finish;
 	template 'error' => { error => 'failed to find that validation code; it may have expired.' };
 };
 

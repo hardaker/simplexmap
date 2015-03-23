@@ -102,7 +102,8 @@ function createmap(lat, lon, repeaters, stations, links) {
 		if (links.hasOwnProperty(linkid)) {
 			var link = links[linkid];
 			var line = L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
-								   [parseFloat(link['locationlat']), parseFloat(link['locationlon'])]]);
+								   [parseFloat(link['locationlat']), parseFloat(link['locationlon'])]],
+								  { color: "#ff0000" });
 
 			
 			stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;

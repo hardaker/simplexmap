@@ -10,65 +10,71 @@ use Data::FormValidator::Constraints qw(:closures);
 ######################################################################
 # New simplexes
 
-get '/simplex' => sub {
-                                               print STDERR "here\n";
+sub simplex_list {
+	my ($messages, $vals) = @_;
+	
 	my $listh = database()->prepare_cached("select * from connections
                                          left join locations  
                                                 on heard = locations.locationid
                                          left join people  
                                                 on locationperson = people.id
                                              where listener = ?"); # XXX: limit by distance from station location
-                                               print STDERR "here\n";
 	
 	$listh->execute(session('user'));
 	my $simplexes = $listh->fetchall_arrayref({});
 
-	template 'simplex/list' => { simplexes => $simplexes };
+	template 'simplex/list' => { simplexes => $simplexes, vals => $vals, messages => $messages };
 };
+
+get '/simplex' => \&simplex_list;
 
 get '/simplex/new' => sub {
 	template 'simplex/new';
 };
 
 post '/simplex' => sub {
-	debug("-------------- here top");
+	debug("-------------- simplex top");
 
 	my $results = 
-	  dfv({ required => ['name', 'callsign', 'latitude', 'longitude', 'visibility'],
-	        optional => [qw(frequency offset pltone dcstone notes)],
+	  dfv({ required => ['signal', 'callsign'],
 	        filters => 'trim',
 	        constraint_methods => 
 	        {
-	         latitude       => qr/^[-+]?[0-9]+\.[0-9]+$/,
-	         longitude      => qr/^[-+]?[0-9]+\.[0-9]+$/,
 	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         visibility     => qr/^(private|public)$/,
-	         frequency      => qr/^[0-9]+\.[0-9]+\s*[a-zA-Z]*$/,
-	         offset         => qr/^(\+|-)$/,
-	         pltone         => qr/^[0-9]+\.[0-9]+$/,
-	         dcstone        => qr/^[0-9]+$/,
+	         signal         => qr/^-?[0-9]+$/,
 	        }
 	      });
+
+	my $vals = $results->valid;
 
 	if ($results->has_invalid || $results->has_missing) {
 		debug("fail");
 		debug($results->msgs);
-		return template 'simplex/new' => { messages => $results->msgs };
+		return simplex_list($results->msgs, $vals);
 	}
 
-	my $vals = $results->valid;
-
+	# XXX: need to allow them to selcet a specific location
 	my $insh = database()->prepare_cached("
-       insert into simplexes (simplexowner, simplexname, simplexcallsign, simplexlat, simplexlon,
-                              simplexnotes, simplexpublic, simplexfreq, simplexoffset,
-                              simplexpl, simplexdcs)
-                      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-	$insh->execute(session('user'), $vals->{'name'}, $vals->{'callsign'}, $vals->{'latitude'}, $vals->{'longitude'},
-	               $vals->{'notes'},
-	               ($vals->{'visibility'} eq 'public' ? 'Y' : 'N'), $vals->{'frequency'}, $vals->{'offset'},
-	               $vals->{'pltone'}, $vals->{'dcstone'});
+       insert into connections (eventid, listener, heard, comment, rating)
+                      select ?, ?, locations.locationid, ?, ?
+                       from people
+                 inner join locations on people.id = locations.locationperson
+                      where people.callsign = ?
+                      limit 1");
 
-	redirect '/simplex/list';
+	# insert the new signal
+	my $res = $insh->execute(0,
+	                         session('user'),
+	                         '',
+	                         $vals->{'signal'},
+	                         $vals->{'callsign'}
+	                        );
+
+	if ($res == 0) {
+		return simplex_list({ callsign => "callsign not found or not registered" }, $vals);
+	}
+
+	redirect '/simplex';
 };
 
 ######################################################################
@@ -180,7 +186,7 @@ post '/simplex/signals' => sub {
 		}
 	}
 	
-	redirect '/simplex/list';
+	redirect '/simplex';
 };
 
 ######################################################################

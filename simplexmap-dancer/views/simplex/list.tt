@@ -24,7 +24,7 @@
         </div>
     </div>
 
-	<form action="/simplex/new" method="POST">
+	<form action="/simplex" method="POST">
       <div class="col-md-12" role="main">
 		<div class="panel panel-default">
           <div class="panel-heading">
@@ -33,11 +33,13 @@
           <div class="panel-body">
 			<div class="input-group">
               <span class="input-group-addon">Callsign</span>
+			  <% IF messages.signal %><% messages.signal %><% END %> 
 	    	  <input name="callsign" id="callsign" type="text" class="form-control" placeholder="WS6Z" />
               </span>
 			</div>
 			<div class="input-group">
               <span class="input-group-addon">Signal strength</span>
+			  <% IF messages.signal %><% messages.signal %><% END %> 
               <select name="signal">
 				<option value="-1">Not Heard</option>
 				<% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>

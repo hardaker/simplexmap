@@ -1,0 +1,55 @@
+<div class="row">
+    <div class="col-md-12" role="main">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+			Your simplex connections
+			</div>
+            <div class="panel-body">
+			  <table class="table">
+				<tr> <th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Strength</th></tr>
+				<% FOREACH simplex IN simplexes %>
+				<tr>
+				  <td><% simplex.callsign %>
+				  </td>
+				  <td><% simplex.locationlat %></a>
+				  </td>
+				  <td><% simplex.locationlon %>
+				  </td>
+				  <td><% simplex.rating %>
+				  </td>
+				</tr>
+				<% END %>
+			  </table>
+            </div>
+        </div>
+    </div>
+
+	<form action="/simplex/new" method="POST">
+      <div class="col-md-12" role="main">
+		<div class="panel panel-default">
+          <div class="panel-heading">
+			Record a new simplex signal:
+          </div>
+          <div class="panel-body">
+			<div class="input-group">
+              <span class="input-group-addon">Callsign</span>
+	    	  <input name="callsign" id="callsign" type="text" class="form-control" placeholder="WS6Z" />
+              </span>
+			</div>
+			<div class="input-group">
+              <span class="input-group-addon">Signal strength</span>
+              <select name="signal">
+				<option value="-1">Not Heard</option>
+				<% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+				<option <% IF vals.signal == level %>selected<% END %> value="<% level %>">S<% level %></option>
+				<% END %>
+              </select>
+              </span>
+			</div>
+			<p><button type="submit" class="btn btn-primary">Record</button></p>
+          </div>
+		</div>
+	  </div>
+	</form>
+</div>
+

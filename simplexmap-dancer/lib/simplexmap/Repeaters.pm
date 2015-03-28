@@ -210,10 +210,12 @@ get '/repeaters/map' => sub {
 
 	# fetch all the links
 	my $simph = database()->prepare_cached("select 
-                                                   locheard.locationlat as heardlat,
-                                                   locheard.locationlon as heardlon,
-                                                   locfrom.locationlat 	as fromlat,
-                                                   locfrom.locationlon 	as fromlon
+                                                   locheard.locationlat    as heardlat,
+                                                   locheard.locationlon    as heardlon,
+                                                   locheard.locationperson as heardperson,
+                                                   locfrom.locationlat 	   as fromlat,
+                                                   locfrom.locationlon 	   as fromlon,
+                                                   locfrom.locationperson  as fromperson
                                               from connections
                                          left join locations as locheard
                                                 on heard = locheard.locationid

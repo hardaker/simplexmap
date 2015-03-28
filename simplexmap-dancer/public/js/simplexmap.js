@@ -54,7 +54,7 @@ function createmap(lat, lon, repeaters, stations, links, simplex) {
 						 {title: repeaters[repeater]['repeatercallsign'],
 						  icon: repeaterIcon});
 
-			repeaterLayerObjs[repeaterLayerObjs.length] = repeatMark;
+			repeaterLayerObjs.push(repeatMark);
 
 			repeaters[repeater]['lines'] = [];
 			repeaters[repeater]['mark'] = repeatMark;
@@ -84,7 +84,7 @@ function createmap(lat, lon, repeaters, stations, links, simplex) {
 						  parseFloat(stations[station]['locationlon'])],
 						 {title: stations[station]['title'],
 						  icon: homeIcon}).addTo(map)
-			stationLayerObjs[stationLayerObjs.length] = stationMark;
+			stationLayerObjs.push(stationMark);
 
 			stations[station]['lines'] = [];
 			stations[station]['mark'] = stationMark;
@@ -97,7 +97,7 @@ function createmap(lat, lon, repeaters, stations, links, simplex) {
 	var stationGroup = L.layerGroup(stationLayerObjs);
 	stationGroup.addTo(map);
 
-	// add the links between the various objects
+	// add the links between the stations and the repeaters
 	for (linkid in links) {
 		if (links.hasOwnProperty(linkid)) {
 			var link = links[linkid];
@@ -106,16 +106,15 @@ function createmap(lat, lon, repeaters, stations, links, simplex) {
 								  { color: "#ff0000" });
 
 			
-			stations[link['listeningStation']]['lines'][stations[link['listeningStation']]['lines'].length] = line;
-			stations[link['listeningStation']]['mark']['ws6z_lines'][stations[link['listeningStation']]['mark']['ws6z_lines'].length] = line;
+			stations[link['listeningStation']]['lines'].push(line);
+			stations[link['listeningStation']]['mark']['ws6z_lines'].push(line);
 
-			repeaters[link['repeaterid']]['lines'][repeaters[link['repeaterid']]['lines'].length] = line;
-
-			repeaters[link['repeaterid']]['mark']['ws6z_lines'][repeaters[link['repeaterid']]['mark']['ws6z_lines'].length] = line;
+			repeaters[link['repeaterid']]['lines'].push(line);
+			repeaters[link['repeaterid']]['mark']['ws6z_lines'].push(line);
 		}
 	}
 
-	// add the links between the various objects
+	// add the links between the stations (simplex)
 	console.log(simplex);
 	for (simplexid in simplex) {
 		if (simplex.hasOwnProperty(simplexid)) {
@@ -125,16 +124,16 @@ function createmap(lat, lon, repeaters, stations, links, simplex) {
 								  { color: "#ffff00" });
 
 			
-			map.addLayer(line);
-			console.log(line);
-
 			console.log(parseFloat(simplex['heardlat']));
 			console.log(parseFloat(simplex['heardlon']));
 			console.log(parseFloat(simplex['fromlat']));
 			console.log(parseFloat(simplex['fromlon']));
 
-			//stations[simplex['listeningStation']]['lines'][stations[simplex['listeningStation']]['lines'].length] = line;
-			//stations[simplex['listeningStation']]['mark']['ws6z_lines'][stations[simplex['listeningStation']]['mark']['ws6z_lines'].length] = line;
+			stations[simplex['heardperson']]['lines'].push(line);
+			stations[simplex['heardperson']]['mark']['ws6z_lines'].push(line)
+
+			stations[simplex['fromperson']]['lines'].push(line);
+			stations[simplex['fromperson']]['mark']['ws6z_lines'].push(line)
 		}
 	}
 

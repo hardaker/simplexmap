@@ -10,13 +10,13 @@
 				<% FOREACH simplex IN simplexes %>
 				<tr>
 				  <td><% simplex.fromname %></td>
-				  <td><% simplex.heardcallsign %>
+				  <td><% simplex.heardcallsign %>/<% simplex.heardname %>
 				  </td>
 				  <td><% simplex.heardlat %></a>
 				  </td>
 				  <td><% simplex.heardlon %>
 				  </td>
-				  <td><% simplex.rating %>
+				  <td>S<% simplex.rating %>
 				  </td>
 				</tr>
 				<% END %>
@@ -44,7 +44,7 @@
 
 			<div class="input-group">
               <span class="input-group-addon">Callsign heard</span>
-			  <% IF messages.signal %><% messages.signal %><% END %> 
+			  <% IF messages.callsign %><% messages.callsign %><% END %> 
 	    	  <input name="callsign" id="callsign" type="text" class="form-control" placeholder="WS6Z" />
               </span>
 			</div>

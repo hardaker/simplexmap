@@ -23,7 +23,8 @@ sub simplex_list {
                                                    locfrom.locationlon 	   as fromlon,
                                                    locfrom.locationperson  as fromperson,
                                                    locfrom.locationname    as fromname,
-                                                   personfrom.callsign     as fromcallsign
+                                                   personfrom.callsign     as fromcallsign,
+                                                   rating
                                   from connections
                                          left join locations as locheard
                                                 on heard = locheard.locationid
@@ -60,7 +61,7 @@ post '/simplex' => sub {
 	        constraint_methods => 
 	        {
 	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         signal         => qr/^-?[0-9]+$/,
+	         signal         => qr/^[0-9]+$/,
 	         location       => qr/^[0-9]+$/,
 	        }
 	      });

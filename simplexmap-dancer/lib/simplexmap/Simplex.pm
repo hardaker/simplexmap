@@ -23,30 +23,36 @@ sub simplex_list {
 	$listh->execute(session('user'));
 	my $simplexes = $listh->fetchall_arrayref({});
 
-	template 'simplex/list' => { simplexes => $simplexes, vals => $vals, messages => $messages };
+	my $listh = database()->prepare_cached("select * from locations where locationperson = ?");
+	$listh->execute(session('user'));
+	my $locations = $listh->fetchall_arrayref({});
+
+	template 'simplex/list' => { simplexes => $simplexes,
+	                             vals => $vals,
+	                             locations => $locations,
+	                             messages => $messages };
 };
 
 get '/simplex' => \&simplex_list;
-
-get '/simplex/new' => sub {
-	template 'simplex/new';
-};
 
 post '/simplex' => sub {
 	debug("-------------- simplex top");
 
 	my $results = 
-	  dfv({ required => ['signal', 'callsign'],
+	  dfv({ required => ['signal', 'callsign', 'location'],
 	        filters => 'trim',
 	        constraint_methods => 
 	        {
 	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
 	         signal         => qr/^-?[0-9]+$/,
+	         location       => qr/^[0-9]+$/,
 	        }
 	      });
 
 	my $vals = $results->valid;
 
+	debug($vals);
+	
 	if ($results->has_invalid || $results->has_missing) {
 		debug("fail");
 		debug($results->msgs);

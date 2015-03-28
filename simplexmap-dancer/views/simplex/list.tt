@@ -32,7 +32,17 @@
           </div>
           <div class="panel-body">
 			<div class="input-group">
-              <span class="input-group-addon">Callsign</span>
+			  <span class="input-group-addon">Heard from station</span>
+			  <% messages.location %>
+              <select name="location">
+				<% FOREACH location IN locations -%>
+				<option <% IF vals.signal == level %>selected<% END %> value="<% location.locationid %>"><% location.locationname %></option>
+				<% END %>
+              </select>
+			</div>
+
+			<div class="input-group">
+              <span class="input-group-addon">Callsign heard</span>
 			  <% IF messages.signal %><% messages.signal %><% END %> 
 	    	  <input name="callsign" id="callsign" type="text" class="form-control" placeholder="WS6Z" />
               </span>

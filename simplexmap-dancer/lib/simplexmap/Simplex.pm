@@ -24,6 +24,7 @@ sub simplex_list {
                                                    locfrom.locationperson  as fromperson,
                                                    locfrom.locationname    as fromname,
                                                    personfrom.callsign     as fromcallsign,
+                                                   from_unixtime(timelogged) as timelogged,
                                                    rating
                                   from connections
                                          left join locations as locheard

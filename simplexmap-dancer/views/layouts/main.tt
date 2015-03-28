@@ -56,6 +56,7 @@
 				  <li><a href="/repeaters/new">Add a new repeater</a></li>
 				</ul>
 			  </li>
+			  <li><a href="/simplex">Simplex</a></li>
 			  <li><a href="/repeaters/map">Signal Map</a></li>
 			</ul>
 			<ul class="nav navbar-nav navbar-right">

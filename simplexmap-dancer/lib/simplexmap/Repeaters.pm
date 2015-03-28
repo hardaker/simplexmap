@@ -208,6 +208,19 @@ get '/repeaters/map' => sub {
              and repeaterpublic = 'Y' or repeaterowner = ?");
 	warn(database()->errstr) if (!$listh);
 
+	# fetch all the links
+	my $simph = database()->prepare_cached("select 
+                                                   locheard.locationlat as heardlat,
+                                                   locheard.locationlon as heardlon,
+                                                   locfrom.locationlat 	as fromlat,
+                                                   locfrom.locationlon 	as fromlon
+                                              from connections
+                                         left join locations as locheard
+                                                on heard = locheard.locationid
+                                         left join locations as locfrom
+                                                on listener = locfrom.locationid"); # XXX: limit by distance from station location
+	warn(database()->errstr) if (!$simph);
+	
 	# find the first station that the user owns, if any, to center the map on
 	my $stationh = database()->prepare_cached("select * from locations where locationperson = ? limit 1");
 	$stationh->execute(session('user'));
@@ -225,11 +238,16 @@ get '/repeaters/map' => sub {
 	$listh->execute(session('user'));
 	my $links = $listh->fetchall_arrayref({});
 
+	$simph->execute();
+	my $simplexes = $simph->fetchall_arrayref({});
+
 	$links = to_json($links);
+	$simplexes = to_json($simplexes);
 
 	template 'repeaters/map' => { repeaters => $allrepeaters,
 	                              stations => $allstations,
 	                              links => $links,
+	                              simplex => $simplexes,
 	                              centeron => $station};
 };
 

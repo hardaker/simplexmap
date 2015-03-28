@@ -1,4 +1,4 @@
-function createmap(lat, lon, repeaters, stations, links) {
+function createmap(lat, lon, repeaters, stations, links, simplex) {
 	var currentLine;
 
 	// create the map 
@@ -114,6 +114,30 @@ function createmap(lat, lon, repeaters, stations, links) {
 			repeaters[link['repeaterid']]['mark']['ws6z_lines'][repeaters[link['repeaterid']]['mark']['ws6z_lines'].length] = line;
 		}
 	}
+
+	// add the links between the various objects
+	console.log(simplex);
+	for (simplexid in simplex) {
+		if (simplex.hasOwnProperty(simplexid)) {
+			var simplex = simplex[simplexid];
+			var line = L.polyline([[parseFloat(simplex['heardlat']), parseFloat(simplex['heardlon'])],
+								   [parseFloat(simplex['fromlat']), parseFloat(simplex['fromlon'])]],
+								  { color: "#ffff00" });
+
+			
+			map.addLayer(line);
+			console.log(line);
+
+			console.log(parseFloat(simplex['heardlat']));
+			console.log(parseFloat(simplex['heardlon']));
+			console.log(parseFloat(simplex['fromlat']));
+			console.log(parseFloat(simplex['fromlon']));
+
+			//stations[simplex['listeningStation']]['lines'][stations[simplex['listeningStation']]['lines'].length] = line;
+			//stations[simplex['listeningStation']]['mark']['ws6z_lines'][stations[simplex['listeningStation']]['mark']['ws6z_lines'].length] = line;
+		}
+	}
+
 
 	L.control.layers(null,  { 'Repeaters': repeaterGroup,
 							  'Stations':  stationGroup} ).addTo(map);

@@ -13,13 +13,29 @@ use Data::FormValidator::Constraints qw(:closures);
 sub simplex_list {
 	my ($messages, $vals) = @_;
 	
-	my $listh = database()->prepare_cached("select * from connections
-                                         left join locations  
-                                                on heard = locations.locationid
-                                         left join people  
-                                                on locationperson = people.id
-                                             where listener = ?"); # XXX: limit by distance from station location
-	
+	my $listh = database()->prepare_cached("select 
+                                                   locheard.locationlat    as heardlat,
+                                                   locheard.locationlon    as heardlon,
+                                                   locheard.locationperson as heardperson,
+                                                   locheard.locationname   as heardname,
+                                                   personheard.callsign    as heardcallsign,
+                                                   locfrom.locationlat 	   as fromlat,
+                                                   locfrom.locationlon 	   as fromlon,
+                                                   locfrom.locationperson  as fromperson,
+                                                   locfrom.locationname    as fromname,
+                                                   personfrom.callsign     as fromcallsign
+                                  from connections
+                                         left join locations as locheard
+                                                on heard = locheard.locationid
+                                         left join locations as locfrom
+                                                on listener = locfrom.locationid
+                                         left join people as personfrom
+                                                on locfrom.locationperson = personfrom.id
+                                         left join people as personheard
+                                                on locheard.locationperson = personheard.id
+                                             where personfrom.id = ?"); # XXX: limit by distance from station location
+
+                                               
 	$listh->execute(session('user'));
 	my $simplexes = $listh->fetchall_arrayref({});
 
@@ -70,7 +86,7 @@ post '/simplex' => sub {
 
 	# insert the new signal
 	my $res = $insh->execute(0,
-	                         session('user'),
+	                         $vals->{'location'},
 	                         '',
 	                         $vals->{'signal'},
 	                         $vals->{'callsign'}

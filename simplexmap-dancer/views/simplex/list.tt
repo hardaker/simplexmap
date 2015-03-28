@@ -6,14 +6,15 @@
 			</div>
             <div class="panel-body">
 			  <table class="table">
-				<tr> <th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Strength</th></tr>
+				<tr> <th>Heard From</th><th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Strength</th></tr>
 				<% FOREACH simplex IN simplexes %>
 				<tr>
-				  <td><% simplex.callsign %>
+				  <td><% simplex.fromname %></td>
+				  <td><% simplex.heardcallsign %>
 				  </td>
-				  <td><% simplex.locationlat %></a>
+				  <td><% simplex.heardlat %></a>
 				  </td>
-				  <td><% simplex.locationlon %>
+				  <td><% simplex.heardlon %>
 				  </td>
 				  <td><% simplex.rating %>
 				  </td>

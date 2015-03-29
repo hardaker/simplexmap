@@ -142,7 +142,8 @@ $dbh->do("create table repeaters(
       listener                  int,
       heard                     int,
       comment                   varchar(255),
-      rating                    int
+      rating                    int,
+      timelogged                int
 )");
 
 $dbh->do("create table repeatersignals

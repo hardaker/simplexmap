@@ -20,11 +20,13 @@
    var repeaters = <% repeaters %>;
    var stations = <% stations %>;
    var links = <% links %>;
-   var simplex = <% simplex %>;
+   var simplexes = <% simplex %>;
 
    var defaultLat = <% centeron.locationlat %>;
    var defaultLon = <% centeron.locationlon %>;
 
-   createmap(defaultLat, defaultLon, repeaters, stations, links, simplex);
+   console.log(simplexes);
+
+   createmap(defaultLat, defaultLon, repeaters, stations, links, simplexes);
 });
 		</script>

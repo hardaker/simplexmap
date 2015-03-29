@@ -212,15 +212,21 @@ get '/repeaters/map' => sub {
 	my $simph = database()->prepare_cached("select 
                                                    locheard.locationlat    as heardlat,
                                                    locheard.locationlon    as heardlon,
+                                                   locheard.locationid     as heardstation,
                                                    locheard.locationperson as heardperson,
                                                    locfrom.locationlat 	   as fromlat,
                                                    locfrom.locationlon 	   as fromlon,
+                                                   locfrom.locationid      as fromstation,
                                                    locfrom.locationperson  as fromperson
                                               from connections
                                          left join locations as locheard
                                                 on heard = locheard.locationid
+                                         left join people as peopleheard
+                                                on locheard.locationperson = peopleheard.id
                                          left join locations as locfrom
-                                                on listener = locfrom.locationid"); # XXX: limit by distance from station location
+                                                on listener = locfrom.locationid
+                                         left join people as peoplefrom
+                                                on locfrom.locationperson = peoplefrom.id"); # XXX: limit by distance from station location
 	warn(database()->errstr) if (!$simph);
 	
 	# find the first station that the user owns, if any, to center the map on

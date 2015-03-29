@@ -1,4 +1,4 @@
-function createmap(lat, lon, repeaters, stations, links, simplex) {
+function createmap(lat, lon, repeaters, stations, links, simplexes) {
 	var currentLine;
 
 	// create the map 
@@ -114,21 +114,15 @@ function createmap(lat, lon, repeaters, stations, links, simplex) {
 		}
 	}
 
-	// add the links between the stations (simplex)
-	console.log(simplex);
-	for (simplexid in simplex) {
-		if (simplex.hasOwnProperty(simplexid)) {
-			var simplex = simplex[simplexid];
+	// add the links between the stations (simplexes)
+	for (simplexid in simplexes) {
+		if (simplexes.hasOwnProperty(simplexid)) {
+			var simplex = simplexes[simplexid];
 			var line = L.polyline([[parseFloat(simplex['heardlat']), parseFloat(simplex['heardlon'])],
 								   [parseFloat(simplex['fromlat']), parseFloat(simplex['fromlon'])]],
 								  { color: "#ffff00" });
 
 			
-			console.log(parseFloat(simplex['heardlat']));
-			console.log(parseFloat(simplex['heardlon']));
-			console.log(parseFloat(simplex['fromlat']));
-			console.log(parseFloat(simplex['fromlon']));
-
 			stations[simplex['heardperson']]['lines'].push(line);
 			stations[simplex['heardperson']]['mark']['ws6z_lines'].push(line)
 

@@ -123,11 +123,11 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 								  { color: "#ffff00" });
 
 			
-			stations[simplex['heardperson']]['lines'].push(line);
-			stations[simplex['heardperson']]['mark']['ws6z_lines'].push(line)
+			stations[simplex['heardstation']]['lines'].push(line);
+			stations[simplex['heardstation']]['mark']['ws6z_lines'].push(line)
 
-			stations[simplex['fromperson']]['lines'].push(line);
-			stations[simplex['fromperson']]['mark']['ws6z_lines'].push(line)
+			stations[simplex['fromstation']]['lines'].push(line);
+			stations[simplex['fromstation']]['mark']['ws6z_lines'].push(line)
 		}
 	}
 

@@ -57,13 +57,22 @@ post '/simplex' => sub {
 	debug("-------------- simplex top");
 
 	my $results = 
-	  dfv({ required => ['signal', 'callsign', 'location'],
+	  dfv({ required => ['signal1', 'callsign1', 'location'],
 	        filters => 'trim',
+	        optional => [qw(signal2 callsign2 signal3 callsign3 signal4 callsign4 signal5 callsign5)],
 	        constraint_methods => 
 	        {
-	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         signal         => qr/^[0-9]+$/,
-	         location       => qr/^[0-9]+$/,
+	         callsign1       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign2       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign3       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign4       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign5       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         signal1         => qr/^-?[0-9]+$/,
+	         signal2         => qr/^-?[0-9]+$/,
+	         signal3         => qr/^-?[0-9]+$/,
+	         signal4         => qr/^-?[0-9]+$/,
+	         signal5         => qr/^-?[0-9]+$/,
+	         location        => qr/^?[0-9]+$/,
 	        }
 	      });
 
@@ -87,17 +96,26 @@ post '/simplex' => sub {
                       limit 1");
 
 	# insert the new signal
-	my $res = $insh->execute(0,
-	                         $vals->{'location'},
-	                         '',
-	                         $vals->{'signal'},
-	                         $vals->{'callsign'}
-	                        );
-
-	if ($res == 0) {
-		return simplex_list({ callsign => "callsign not found or not registered" }, $vals);
+	database()->begin_work();
+	foreach my $num (qw(1 2 3 4 5)) {
+		if (defined($vals->{"signal$num"}) && defined($vals->{"callsign$num"}) &&
+		    $vals->{"signal$num"} > -1) {
+			my $res = $insh->execute(0,
+			                         $vals->{'location'},
+			                         '',
+			                         $vals->{"signal$num"},
+			                         $vals->{"callsign$num"},
+			                        );
+			if ($res == 0) {
+				database()->rollback();
+				return simplex_list({ "callsign$num" => "<font color=\"red\">* callsign not found or not registered</font>",
+				                      "callsign" => "<font color=\"red\">* callsign not found or not registered</font>"}, $vals);
+			}
+		}
 	}
 
+	database()->commit();
+	$insh->finish();
 	redirect '/simplex';
 };
 

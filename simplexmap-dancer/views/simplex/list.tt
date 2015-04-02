@@ -30,7 +30,7 @@
       <div class="col-md-12" role="main">
 		<div class="panel panel-default">
           <div class="panel-heading">
-			Record a new simplex signal:
+			Record new simplex signals:
           </div>
           <div class="panel-body">
 			<div class="input-group">
@@ -38,27 +38,99 @@
 			  <% messages.location %>
               <select name="location">
 				<% FOREACH location IN locations -%>
-				<option <% IF vals.signal == level %>selected<% END %> value="<% location.locationid %>"><% location.locationname %></option>
+				<option <% IF vals.location == location.locationid %>selected<% END %> value="<% location.locationid %>"><% location.locationname %></option>
 				<% END %>
               </select>
 			</div>
+			
+			<table class="table " id="simplextable">
+			  <thead>
+				<tr><th>Callsign heard</th><th>Signal Strength (S-meter)</th></tr>
+			  </thead>
+			  <tbody>
+				<tr>
+				  <td>
+				  <% IF messages.callsign1 %><% messages.callsign1 %><% END %> 
+	    			<input name="callsign1" id="callsign1" type="text"
+						   class="form-control" placeholder="WS6Z" value="<% vals.callsign1 %>"/>
+				  </td>
+				  <td>
+					<% IF messages.signal1 %><% messages.signal1 %><% END %> 
+					<select name="signal1">
+					  <option value="-1">Not Heard</option>
+					  <% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+					  <option <% IF vals.signal1 == level %>selected<% END %> value="<% level %>"><% level %></option>
+					  <% END %>
+					</select>
+				  </td>
+				</tr>
+				<tr>
+				  <td>
+				  <% IF messages.callsign2 %><% messages.callsign2 %><% END %> 
+	    			<input name="callsign2" id="callsign2" type="text"
+						   class="form-control" placeholder="WS6Z" value="<% vals.callsign2 %>" />
+				  </td>
+				  <td>
+					<% IF messages.signal2 %><% messages.signal2 %><% END %> 
+					<select name="signal2">
+					  <option value="-1">Not Heard</option>
+					  <% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+					  <option <% IF vals.signal2 == level %>selected<% END %> value="<% level %>"><% level %></option>
+					  <% END %>
+					</select>
+				  </td>
+				</tr>
+				<tr>
+				  <td>
+				  <% IF messages.callsign3 %><% messages.callsign3 %><% END %> 
+	    			<input name="callsign3" id="callsign3" type="text"
+						   class="form-control" placeholder="WS6Z"  value="<% vals.callsign3 %>"/>
+				  </td>
+				  <td>
+					<% IF messages.signal3 %><% messages.signal3 %><% END %> 
+					<select name="signal3">
+					  <option value="-1">Not Heard</option>
+					  <% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+					  <option <% IF vals.signal3 == level %>selected<% END %> value="<% level %>"><% level %></option>
+					  <% END %>
+					</select>
+				  </td>
+				</tr>
+				<tr>
+				  <td>
+				  <% IF messages.callsign4 %><% messages.callsign4 %><% END %> 
+	    			<input name="callsign4" id="callsign4" type="text"
+						   class="form-control" placeholder="WS6Z"  value="<% vals.callsign4 %>"/>
+				  </td>
+				  <td>
+					<% IF messages.signal4 %><% messages.signal4 %><% END %> 
+					<select name="signal4">
+					  <option value="-1">Not Heard</option>
+					  <% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+					  <option <% IF vals.signal4 == level %>selected<% END %> value="<% level %>"><% level %></option>
+					  <% END %>
+					</select>
+				  </td>
+				</tr>
+				<tr>
+				  <td>
+				  <% IF messages.callsign5 %><% messages.callsign5 %><% END %> 
+	    			<input name="callsign5" id="callsign5" type="text"
+						   class="form-control" placeholder="WS6Z"  value="<% vals.callsign5 %>"/>
+				  </td>
+				  <td>
+					<% IF messages.signal5 %><% messages.signal5 %><% END %> 
+					<select name="signal5">
+					  <option value="-1">Not Heard</option>
+					  <% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
+					  <option <% IF vals.signal5 == level %>selected<% END %> value="<% level %>"><% level %></option>
+					  <% END %>
+					</select>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
 
-			<div class="input-group">
-              <span class="input-group-addon">Callsign heard</span>
-			  <% IF messages.callsign %><% messages.callsign %><% END %> 
-	    	  <input name="callsign" id="callsign" type="text" class="form-control" placeholder="WS6Z" />
-              </span>
-			</div>
-			<div class="input-group">
-              <span class="input-group-addon">Signal strength</span>
-			  <% IF messages.signal %><% messages.signal %><% END %> 
-              <select name="signal">
-				<option value="-1">Not Heard</option>
-				<% FOREACH level IN ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"] -%>
-				<option <% IF vals.signal == level %>selected<% END %> value="<% level %>">S<% level %></option>
-				<% END %>
-              </select>
-              </span>
 			</div>
 			<p><button type="submit" class="btn btn-primary">Record</button></p>
           </div>

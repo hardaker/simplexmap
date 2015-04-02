@@ -41,7 +41,7 @@ sub simplex_list {
 	$listh->execute(session('user'));
 	my $simplexes = $listh->fetchall_arrayref({});
 
-	my $listh = database()->prepare_cached("select * from locations where locationperson = ?");
+	$listh = database()->prepare_cached("select * from locations where locationperson = ?");
 	$listh->execute(session('user'));
 	my $locations = $listh->fetchall_arrayref({});
 

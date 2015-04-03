@@ -189,14 +189,33 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			// 	.openOn(map);
 		}
 
-		console.log(this.ws6z_obj); 
-
 		this.ws6z_shown = !shown;
+	}
+
+	self['findCallsign'] = function(callsign) {
+		callsign = callsign.toUpperCase();
+
+		for (station in allStations) {
+			if (allStations.hasOwnProperty(station)) {
+				if (stations[station].callsign === callsign) {
+					showPopup(stations[station]);
+					return;
+				}
+			}
+		}
+		for (repeater in allRepeaters) {
+			if (allRepeaters.hasOwnProperty(repeater)) {
+				if (repeaters[repeater].callsign === callsign) {
+					showPopup(repeaters[repeater]);
+					return;
+				}
+			}
+		}
 	}
 
 	self['toggleAllStations'] = function() {
 		for (station in allStations) {
-			if (stations.hasOwnProperty(station)) {
+			if (allStations.hasOwnProperty(station)) {
 				toggleLines(allStations[station]['lines']);
 			}
 		}
@@ -204,7 +223,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 
 	self['toggleAllRepeaters'] = function() {
 		for (repeater in allRepeaters) {
-			if (repeaters.hasOwnProperty(repeater)) {
+			if (allRepeaters.hasOwnProperty(repeater)) {
 				toggleLines(allRepeaters[repeater]['lines'], false);
 			}
 		}

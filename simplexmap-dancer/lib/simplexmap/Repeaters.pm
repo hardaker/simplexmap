@@ -183,7 +183,8 @@ post '/repeaters/signals' => sub {
 # Repeater Map
 get '/repeaters/map' => sub {
 	# get all the repeaters
-	my $repeatersh = database()->prepare_cached("select *, repeaterlat as lat, repeaterlon as lon
+	my $repeatersh = database()->prepare_cached("select *, repeaterlat as lat, repeaterlon as lon,
+                                                   repeatercallsign as callsign
                                                    from repeaters
                                                   where repeaterpublic = 'Y' or repeaterowner = ?");
 	$repeatersh->execute(session('user'));

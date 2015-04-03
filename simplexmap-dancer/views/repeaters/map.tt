@@ -7,8 +7,8 @@
         </div>
         <div class="panel-body">
           <div class="btn-group-sm" role="group" aria-lable="unknown" style="margin-bottom: 5px">
-			<button type="button" class="btn btn-default" id="repeaterbut">Show All Repeater Lines</button>
-			<button type="button" class="btn btn-default" id="stationbut">Show All Station Lines</button>
+			<button type="button" class="btn btn-default" id="repeaterbut">Show Repeater Signals</button>
+			<button type="button" class="btn btn-default" id="stationbut">Show All Signals</button>
           </div>
           <div id="map" class="map" style="height: 600px;">
           </div>

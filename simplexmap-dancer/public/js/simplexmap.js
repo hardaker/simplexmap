@@ -170,6 +170,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 		// 'this' should be a marker
 		var lines = this.ws6z_lines;
 		var shown = this.ws6z_shown;
+		var showpopup = false;
 
 		if (lines.length === 0) {
 			showpopup = true;

@@ -64,7 +64,7 @@ post '/repeaters' => sub {
 	               ($vals->{'visibility'} eq 'public' ? 'Y' : 'N'), $vals->{'frequency'}, $vals->{'offset'},
 	               $vals->{'pltone'}, $vals->{'dcstone'});
 
-	redirect '/repeaters/list';
+	redirect '/repeaters';
 };
 
 ######################################################################

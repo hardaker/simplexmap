@@ -2,14 +2,17 @@
     <div class="col-md-12" role="main">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <p>Repeater Map
-			<button type="button" class="btn btn-primary pull-right" id="repeaterbut">Show All Repeater Lines</button>
-			<button type="button" class="btn btn-primary pull-right" id="stationbut">Show All Station Lines</button>
-          </p>
+          Repeater Map
+          
         </div>
         <div class="panel-body">
+          <div class="btn-group-sm" role="group" aria-lable="unknown" style="margin-bottom: 5px">
+			<button type="button" class="btn btn-default" id="repeaterbut">Show All Repeater Lines</button>
+			<button type="button" class="btn btn-default" id="stationbut">Show All Station Lines</button>
+          </div>
           <div id="map" class="map" style="height: 600px;">
           </div>
+		  <br />
 		  <p><em>Click on an item to show signal paths to it.</em></p>
         </div>
       </div>

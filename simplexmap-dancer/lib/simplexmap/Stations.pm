@@ -71,7 +71,7 @@ post '/stations' => sub {
 get '/stations/:num' => sub {
 	my $num = param('num');
 	if ($num !~ /^[0-9]+$/) {
-		return template 'error' => { error => "illegal URL" }
+		return template 'error' => { error => "Unknown Station Id" }
 	}
 
 	my $listh = database()->prepare_cached("select * from locations

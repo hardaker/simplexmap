@@ -264,7 +264,7 @@ get '/repeaters/map' => sub {
 get '/repeaters/:num' => sub {
 	my $num = param('num');
 	if ($num !~ /^[0-9]+$/) {
-		return template 'error' => { error => "illegal URL" }
+		return template 'error' => { error => "Unknown Repeater ID" }
 	}
 
 	my $listh = database()->prepare_cached("select * from repeaters

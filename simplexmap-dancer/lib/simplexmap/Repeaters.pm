@@ -41,7 +41,7 @@ post '/repeaters' => sub {
 	         visibility     => qr/^(private|public)$/,
 	         frequency      => qr/^[0-9]+\.[0-9]+\s*[a-zA-Z]*$/,
 	         offset         => qr/^(\+|-)$/,
-	         pltone         => qr/^[0-9]+\.[0-9]+$/,
+	         pltone         => qr/^[0-9]+\.?[0-9]+$/,
 	         dcstone        => qr/^[0-9]+$/,
 	        }
 	      });

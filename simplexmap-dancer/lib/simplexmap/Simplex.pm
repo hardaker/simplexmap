@@ -35,10 +35,11 @@ sub simplex_list {
                                                 on locfrom.locationperson = personfrom.id
                                          left join people as personheard
                                                 on locheard.locationperson = personheard.id
-                                             where personfrom.id = ?"); # XXX: limit by distance from station location
+                                             where personfrom.id = ?
+                                                or personheard.id = ?"); # XXX: limit by distance from station location
 
                                                
-	$listh->execute(session('user'));
+	$listh->execute(session('user'), session('user'));
 	my $simplexes = $listh->fetchall_arrayref({});
 
 	$listh = database()->prepare_cached("select * from locations where locationperson = ?");

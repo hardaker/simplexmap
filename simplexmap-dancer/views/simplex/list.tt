@@ -7,10 +7,10 @@
 	  </div>
       <div class="panel-body">
 		<table class="table">
-		  <tr> <th>Heard From</th><th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Strength</th><th>Logged</th></tr>
+		  <tr> <th>Listening Station</th><th>Station Heard</th><th>Latitude </th> <th>Longitude </th><th>Strength</th><th>Logged</th></tr>
 		  <% FOREACH simplex IN simplexes %>
 		  <tr>
-			<td><% simplex.fromname %></td>
+			<td><% simplex.fromcallsign %>/<% simplex.fromname %></td>
 			<td><% simplex.heardcallsign %>/<% simplex.heardname %>
 			</td>
 			<td><% simplex.heardlat %></a>

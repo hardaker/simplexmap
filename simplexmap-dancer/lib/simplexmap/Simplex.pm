@@ -105,8 +105,8 @@ post '/simplex' => sub {
 			                         $vals->{'location'},
 			                         '',
 			                         $vals->{"signal$num"},
-			                         $vals->{"callsign$num"},
 			                         time(),
+			                         $vals->{"callsign$num"},
 			                        );
 			if ($res == 0) {
 				database()->rollback();

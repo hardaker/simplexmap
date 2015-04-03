@@ -1,29 +1,29 @@
 <div class="row">
-    <div class="col-md-12" role="main">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-			Your simplex connections
-			</div>
-            <div class="panel-body">
-			  <table class="table">
-				<tr> <th>Heard From</th><th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Strength</th><th>Logged</th></tr>
-				<% FOREACH simplex IN simplexes %>
-				<tr>
-				  <td><% simplex.fromname %></td>
-				  <td><% simplex.heardcallsign %>/<% simplex.heardname %>
-				  </td>
-				  <td><% simplex.heardlat %></a>
-				  </td>
-				  <td><% simplex.heardlon %>
-				  </td>
-				  <td>S<% simplex.rating %>
-				  </td>
-				  <td><% simplex.timelogged %></td>
-				</tr>
-				<% END %>
-			  </table>
-            </div>
-        </div>
+  <div class="col-md-12" role="main">
+	<% IF locations.size > 0 %>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+		Your simplex connections
+	  </div>
+      <div class="panel-body">
+		<table class="table">
+		  <tr> <th>Heard From</th><th>Callsign</th><th>Latitude </th> <th>Longitude </th><th>Strength</th><th>Logged</th></tr>
+		  <% FOREACH simplex IN simplexes %>
+		  <tr>
+			<td><% simplex.fromname %></td>
+			<td><% simplex.heardcallsign %>/<% simplex.heardname %>
+			</td>
+			<td><% simplex.heardlat %></a>
+			</td>
+			<td><% simplex.heardlon %>
+			</td>
+			<td>S<% simplex.rating %>
+			</td>
+			<td><% simplex.timelogged %></td>
+		  </tr>
+		  <% END %>
+		</table>
+      </div>
     </div>
 
 	<form action="/simplex" method="POST">
@@ -50,7 +50,7 @@
 			  <tbody>
 				<tr>
 				  <td>
-				  <% IF messages.callsign1 %><% messages.callsign1 %><% END %> 
+					<% IF messages.callsign1 %><% messages.callsign1 %><% END %> 
 	    			<input name="callsign1" id="callsign1" type="text"
 						   class="form-control" placeholder="WS6Z" value="<% vals.callsign1 %>"/>
 				  </td>
@@ -66,7 +66,7 @@
 				</tr>
 				<tr>
 				  <td>
-				  <% IF messages.callsign2 %><% messages.callsign2 %><% END %> 
+					<% IF messages.callsign2 %><% messages.callsign2 %><% END %> 
 	    			<input name="callsign2" id="callsign2" type="text"
 						   class="form-control" placeholder="WS6Z" value="<% vals.callsign2 %>" />
 				  </td>
@@ -82,7 +82,7 @@
 				</tr>
 				<tr>
 				  <td>
-				  <% IF messages.callsign3 %><% messages.callsign3 %><% END %> 
+					<% IF messages.callsign3 %><% messages.callsign3 %><% END %> 
 	    			<input name="callsign3" id="callsign3" type="text"
 						   class="form-control" placeholder="WS6Z"  value="<% vals.callsign3 %>"/>
 				  </td>
@@ -98,7 +98,7 @@
 				</tr>
 				<tr>
 				  <td>
-				  <% IF messages.callsign4 %><% messages.callsign4 %><% END %> 
+					<% IF messages.callsign4 %><% messages.callsign4 %><% END %> 
 	    			<input name="callsign4" id="callsign4" type="text"
 						   class="form-control" placeholder="WS6Z"  value="<% vals.callsign4 %>"/>
 				  </td>
@@ -114,7 +114,7 @@
 				</tr>
 				<tr>
 				  <td>
-				  <% IF messages.callsign5 %><% messages.callsign5 %><% END %> 
+					<% IF messages.callsign5 %><% messages.callsign5 %><% END %> 
 	    			<input name="callsign5" id="callsign5" type="text"
 						   class="form-control" placeholder="WS6Z"  value="<% vals.callsign5 %>"/>
 				  </td>
@@ -132,10 +132,14 @@
 			</table>
 
 			<p><button type="submit" class="btn btn-primary">Record</button></p>
-			</div>
-          </div>
+		  </div>
 		</div>
 	  </div>
 	</form>
+	<% ELSE %>
+	<div class="alert alert-warning">Before you can add a simplex connection, you must fist <a href="/stations/new">Create a new listening station</a>
+	  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	</div>
+	<% END %>
+  </div>
 </div>
-

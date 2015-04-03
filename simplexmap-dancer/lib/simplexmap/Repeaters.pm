@@ -183,14 +183,16 @@ post '/repeaters/signals' => sub {
 # Repeater Map
 get '/repeaters/map' => sub {
 	# get all the repeaters
-	my $repeatersh = database()->prepare_cached("select * from repeaters
+	my $repeatersh = database()->prepare_cached("select *, repeaterlat as lat, repeaterlon as lon
+                                                   from repeaters
                                                   where repeaterpublic = 'Y' or repeaterowner = ?");
 	$repeatersh->execute(session('user'));
 	my $allrepeaters = $repeatersh->fetchall_hashref('repeaterid');
 	$allrepeaters = to_json($allrepeaters);
 
 	# get all the stations
-	my $stationsh = database()->prepare_cached("select * from locations
+	my $stationsh = database()->prepare_cached("select *, locationlat as lat, locationlon as lon
+                                                  from locations
                                             inner join people
                                                     on locations.locationperson = people.id");
 	$stationsh->execute();

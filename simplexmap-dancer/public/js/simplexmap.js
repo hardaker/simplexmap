@@ -141,17 +141,17 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 
 
 	function toggleLines(lines, shown) {
-		var showpopup = false;
+		var showpopup = true;
 
 		for (line in lines) {
 			if (lines.hasOwnProperty(line)) {
 				//lines[line].hide();
 				if (shown) {
 					map.removeLayer(lines[line]);
+					// something was shown, so don't show the popup
+					showpopup = false;
 				} else {
 					map.addLayer(lines[line]);
-					// pop up the display
-					showpopup = true;
 				}
 			}
 		}
@@ -159,25 +159,37 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 		return [shown, showpopup];
 	}
 
+	function showPopup(forobj) {
+		var popup = L.popup({ offset: forobj.offset })
+	  		.setLatLng([parseFloat(forobj.lat), parseFloat(forobj.lon)])
+			.setContent(forobj.title)
+			.openOn(map);
+	}
+
 	function onMarkerClick(e) {
 		// 'this' should be a marker
 		var lines = this.ws6z_lines;
 		var shown = this.ws6z_shown;
 
-		if (lines.length == 0) {
+		if (lines.length === 0) {
 			showpopup = true;
 		}
 
 		var results = toggleLines(lines, shown);
 		shown = results[0];
-		showpopup = results[1];
-		
-		if (showpopup) {
-			var popup = L.popup({ offset: this.ws6z_obj.offset })
-	  			.setLatLng(this._latlng)
-				.setContent(this.ws6z_obj.title)
-				.openOn(map);
+		if (!showpopup) {
+			showpopup = results[1];
 		}
+
+		if (showpopup) {
+			showPopup(this.ws6z_obj);
+			// var popup = L.popup({ offset: this.ws6z_obj.offset })
+	  		// 	.setLatLng(this._latlng)
+			// 	.setContent(this.ws6z_obj.title)
+			// 	.openOn(map);
+		}
+
+		console.log(this.ws6z_obj); 
 
 		this.ws6z_shown = !shown;
 	}

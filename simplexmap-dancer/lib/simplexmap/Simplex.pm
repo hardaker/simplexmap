@@ -89,8 +89,8 @@ post '/simplex' => sub {
 
 	# XXX: need to allow them to selcet a specific location
 	my $insh = database()->prepare_cached("
-       insert into connections (eventid, listener, heard, comment, rating)
-                      select ?, ?, locations.locationid, ?, ?
+       insert into connections (eventid, listener, heard, comment, rating, timelogged)
+                      select ?, ?, locations.locationid, ?, ?, ?
                        from people
                  inner join locations on people.id = locations.locationperson
                       where people.callsign = ?
@@ -106,6 +106,7 @@ post '/simplex' => sub {
 			                         '',
 			                         $vals->{"signal$num"},
 			                         $vals->{"callsign$num"},
+			                         time(),
 			                        );
 			if ($res == 0) {
 				database()->rollback();

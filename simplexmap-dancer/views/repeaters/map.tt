@@ -3,6 +3,8 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <p>Repeater Map
+			<button type="button" class="btn btn-primary pull-right" id="repeaterbut">Show All Repeater Lines</button>
+			<button type="button" class="btn btn-primary pull-right" id="stationbut">Show All Station Lines</button>
           </p>
         </div>
         <div class="panel-body">
@@ -25,8 +27,8 @@
    var defaultLat = <% centeron.locationlat %>;
    var defaultLon = <% centeron.locationlon %>;
 
-   console.log(simplexes);
-
-   createmap(defaultLat, defaultLon, repeaters, stations, links, simplexes);
+   var simplexmap = createmap(defaultLat, defaultLon, repeaters, stations, links, simplexes);
+   $('#repeaterbut').on("click", simplexmap['toggleAllRepeaters']);
+   $('#stationbut').on("click", simplexmap['toggleAllStations']);
 });
 		</script>

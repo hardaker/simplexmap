@@ -1,5 +1,9 @@
 function createmap(lat, lon, repeaters, stations, links, simplexes) {
 	var currentLine;
+	var self = {};
+
+	var allStations = stations;
+	var allRepeaters = repeaters;
 
 	// create the map 
 	var map = L.map('map', {
@@ -136,16 +140,9 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 							  'Stations':  stationGroup} ).addTo(map);
 
 
-	function onMarkerClick(e) {
-		// 'this' should be a marker
-		var lines = this.ws6z_lines;
-		var shown = this.ws6z_shown;
+	function toggleLines(lines, shown) {
 		var showpopup = false;
 
-		if (lines.length == 0) {
-			showpopup = true;
-		}
-		
 		for (line in lines) {
 			if (lines.hasOwnProperty(line)) {
 				//lines[line].hide();
@@ -159,14 +156,47 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			}
 		}
 
+		return [shown, showpopup];
+	}
+
+	function onMarkerClick(e) {
+		// 'this' should be a marker
+		var lines = this.ws6z_lines;
+		var shown = this.ws6z_shown;
+
+		if (lines.length == 0) {
+			showpopup = true;
+		}
+
+		var results = toggleLines(lines, shown);
+		shown = results[0];
+		showpopup = results[1];
+		
 		if (showpopup) {
 			var popup = L.popup({ offset: this.ws6z_obj.offset })
 	  			.setLatLng(this._latlng)
 				.setContent(this.ws6z_obj.title)
 				.openOn(map);
 		}
-		
+
 		this.ws6z_shown = !shown;
 	}
 
+	self['toggleAllStations'] = function() {
+		for (station in allStations) {
+			if (stations.hasOwnProperty(station)) {
+				toggleLines(allStations[station]['lines']);
+			}
+		}
+	}
+
+	self['toggleAllRepeaters'] = function() {
+		for (repeater in allRepeaters) {
+			if (repeaters.hasOwnProperty(repeater)) {
+				toggleLines(allRepeaters[repeater]['lines'], false);
+			}
+		}
+	}
+	
+	return self;
 }

@@ -193,11 +193,17 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 	}
 
 	self['findCallsign'] = function(callsign) {
-		callsign = callsign.toUpperCase();
+		//callsign = callsign.toUpperCase();
+		var matcher = new RegExp(callsign, "i");
 
 		for (station in allStations) {
 			if (allStations.hasOwnProperty(station)) {
-				if (stations[station].callsign === callsign) {
+				if (stations[station].callsign.match(matcher) ||
+					(stations[station].firstname && stations[station].firstname.match(matcher)) ||
+					(stations[station].lastname && stations[station].lastname.match(matcher)) ||
+					(stations[station].locationname && stations[station].locationname.match(matcher)) ||
+					(stations[station].title && stations[station].title.match(matcher))
+				   ) {
 					showPopup(stations[station]);
 					return;
 				}
@@ -205,7 +211,10 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 		}
 		for (repeater in allRepeaters) {
 			if (allRepeaters.hasOwnProperty(repeater)) {
-				if (repeaters[repeater].callsign === callsign) {
+				if (repeaters[repeater].callsign.match(matcher) ||
+					(repeaters[repeater].repeatername && repeaters[repeater].repeatername.match(matcher)) ||
+					(repeaters[repeater].repeaternotes && repeaters[repeater].repeaternotes.match(matcher)) ||
+					(repeaters[repeater].title && repeaters[repeater].title.match(matcher))) {
 					showPopup(repeaters[repeater]);
 					return;
 				}

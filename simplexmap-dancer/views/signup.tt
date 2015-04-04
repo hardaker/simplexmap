@@ -28,7 +28,7 @@
 			  <% IF messages.email %><p class="error"><% messages.email %></p><% END %>
 			</div>
 			<div class="input-group">
-              <span class="input-group-addon">Password</span>
+              <span class="input-group-addon">Password <em>(minimum 6 characters)</em></span>
               <input name="password" type="password" class="form-control" placeholder="minmum length = 6"/>
 			  <% IF messages.password %><p class="error"><% messages.password %></p><% END %>
 			</div>

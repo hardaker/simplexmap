@@ -38,6 +38,33 @@
 			</table>
 		  </div>
 		</div>
+
+		<div class="panel panel-default">
+		  <div class="panel-heading">Simplex Stations Heard</div>
+		  <div class="panel-body">
+			<table class="table " id="repeatersheard">
+			  <thead>
+				<th>Station</th><th>Name</th><th>Signal</th>
+			  </thead>
+			  <tbody>
+				<% FOREACH person IN people %>
+				<tr>
+                  <td><% person.heardcallsign %> / <% person.heardname %>
+                  </td>
+                  <td><% person.lastname %>, <% person.firstname %>
+                  </td>
+                  <td><% person.rating %>
+                  </td>
+				</tr>
+				<% END %>
+			  </tbody>
+			  <tfoot>
+			  </tfoot>
+			</table>
+		  </div>
+		</div>
+		
+
     </div>
 </div>
 

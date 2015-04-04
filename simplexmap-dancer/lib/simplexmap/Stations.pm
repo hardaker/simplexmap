@@ -4,6 +4,7 @@ use Dancer ':syntax';
 use Dancer::Plugin::Database;
 use Dancer::Plugin::DataFormValidator;
 use Data::FormValidator::Constraints qw(:closures);
+use Data::Dumper;
 
 get '/stations' => sub {
 	my $listh;
@@ -99,7 +100,41 @@ get '/stations/:num' => sub {
 	my $repeaters = $repeatersh->fetchall_arrayref({});
 	$repeatersh->finish;
 
-	template 'stations/details' => { location => $station, repeaters => $repeaters };
+	my $simplexesh = database()->prepare_cached("
+                                            select 
+                                                   locheard.locationlat    as heardlat,
+                                                   locheard.locationlon    as heardlon,
+                                                   locheard.locationperson as heardperson,
+                                                   locheard.locationname   as heardname,
+                                                   personheard.firstname   as firstname,
+                                                   personheard.lastname    as lastname,
+                                                   personheard.callsign    as heardcallsign,
+                                                   personfrom.callsign     as fromcallsign,
+                                                   from_unixtime(timelogged) as timelogged,
+                                                   rating
+                                  from connections
+                                         left join locations as locheard
+                                                on heard = locheard.locationid
+                                         left join locations as locfrom
+                                                on listener = locfrom.locationid
+                                         left join people as personfrom
+                                                on locfrom.locationperson = personfrom.id
+                                         left join people as personheard
+                                                on locheard.locationperson = personheard.id
+                                             where personfrom.id = ?
+                                                or personheard.id = ?
+    ");
+	
+	$simplexesh->execute(session('user'), session('user'));
+	my $people = $simplexesh->fetchall_arrayref({});
+	$simplexesh->finish();
+
+	print STDERR "hi ---------------------------------------------------------------------- \n";
+	print STDERR Dumper($people);
+	
+	template 'stations/details' => { location => $station,
+	                                 repeaters => $repeaters,
+	                                 people => $people };
 };
 
 

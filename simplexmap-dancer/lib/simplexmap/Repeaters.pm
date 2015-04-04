@@ -176,7 +176,7 @@ post '/repeaters/signals' => sub {
 		}
 	}
 	
-	redirect '/repeaters/list';
+	redirect '/repeaters';
 };
 
 ######################################################################

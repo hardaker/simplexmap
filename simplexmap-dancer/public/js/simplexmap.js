@@ -226,7 +226,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 	self['toggleAllStations'] = function() {
 		for (station in allStations) {
 			if (allStations.hasOwnProperty(station)) {
-				toggleLines(allStations[station]['lines']);
+				toggleLines(allStations[station]['lines'], false);
 			}
 		}
 	}
@@ -238,6 +238,14 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			}
 		}
 	}
-	
+
+	self['hideAllStations'] = function() {
+		for (station in allStations) {
+			if (allStations.hasOwnProperty(station)) {
+				toggleLines(allStations[station]['lines'], true);
+			}
+		}
+	}
+
 	return self;
 }

@@ -281,8 +281,23 @@ get '/repeaters/:num' => sub {
 	if (!$repeater) {
 		return template 'error' => { error => "Unknown repeater" }
 	}
+
+	my $peopleh = database()->prepare_cached("select *, people.callsign as personcallsign from repeatersignals
+                                          inner join repeaters
+                                                  on repeaters.repeaterid = repeatersignals.repeaterid
+                                          inner join locations
+                                                  on listeningStation = locationid
+                                          inner join people
+                                                  on people.id = locations.locationperson
+                                               where repeaters.repeaterid = ?
+                                                 and repeaterStrength > -1
+                                                 and (repeaterpublic = 'Y'
+                                                      or repeaterowner = ?)");
+	$peopleh->execute($num, session('user'));
+	my $people = $peopleh->fetchall_arrayref({});
+	$peopleh->finish;
    
-	template 'repeaters/details' => { repeater => $repeater };
+	template 'repeaters/details' => { repeater => $repeater, people => $people };
 };
 
 

@@ -1,31 +1,52 @@
 <div class="row">
-    <div class="col-md-12" role="main">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-			Details for repeater: <% repeater.repeatername %>
-			</div>
-            <div class="panel-body">
-			  <table class="table">
-				<tr> <th> Name </th><td><% repeater.repeatername %></td></tr>
-				<tr> <th> Callsign </th><td><% repeater.repeatercallsign %></td></tr>
-				<tr> <th> Frequency </th><td><% repeater.repeaterfreq %></td></tr>
-				<tr> <th> Offset </th><td><% repeater.repeateroffset %></td></tr>
-				<tr> <th> PL Tone </th><td><% repeater.repeaterpl %></td></tr>
-				<tr> <th> DCS Code </th><td><% repeater.repeaterdcs %></td></tr>
-				<tr> <th> Notes </th><td><% repeater.repeaternotes %></td></tr>
-			  </table>
-            </div>
-        </div>
-
-		<div class="alert alert-info">
-		  Want to record whether you can hear these repeaters?  <a href="/repeaters/signals">Do that here!</a>
-		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-		</div>
-
-		<div class="alert alert-info">
-		  Know of a repeater not listed and know where it's antenna is on a map?<br /><a href="/repeaters/new">Add it to the sytem!</a>
-		  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-		</div>
+  <div class="col-md-12" role="main">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+		Details for repeater: <% repeater.repeatername %>
+	  </div>
+      <div class="panel-body">
+		<table class="table">
+		  <tr> <th> Name </th><td><% repeater.repeatername %></td></tr>
+		  <tr> <th> Callsign </th><td><% repeater.repeatercallsign %></td></tr>
+		  <tr> <th> Frequency </th><td><% repeater.repeaterfreq %></td></tr>
+		  <tr> <th> Offset </th><td><% repeater.repeateroffset %></td></tr>
+		  <tr> <th> PL Tone </th><td><% repeater.repeaterpl %></td></tr>
+		  <tr> <th> DCS Code </th><td><% repeater.repeaterdcs %></td></tr>
+		  <tr> <th> Notes </th><td><% repeater.repeaternotes %></td></tr>
+		</table>
+      </div>
     </div>
-</div>
 
+	<div class="alert alert-info">
+	  Want to record whether you can hear these repeaters?  <a href="/repeaters/signals">Do that here!</a>
+	  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	</div>
+
+	<div class="alert alert-info">
+	  Know of a repeater not listed and know where it's antenna is on a map?<br /><a href="/repeaters/new">Add it to the sytem!</a>
+	  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">Stations that can hear the '<% repeater.repeatername %>' repeater</div>
+
+	  <div class="panel-body">
+		<table class="table " id="repeaterstations">
+		  <thead>
+			<th>Callsign</th><th>Name</th><th>Signal</th></thead>
+		  </thead>
+		  <tbody>
+			<% FOREACH person IN people %>
+			<tr><td><% person.personcallsign %></td>
+			  <td><% person.lastname %>, <% person.firstname %>
+			  </td>
+			  <td>S<% person.repeaterStrength %>
+			  </td>
+			</tr>
+			<% END %>
+		  </tbody>
+		</table>
+	  </div>
+	</div>
+  </div>
+</div>

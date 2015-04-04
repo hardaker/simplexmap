@@ -79,14 +79,14 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			stations[station]['title'] =
 				"<strong><a href=\"/stations/" + stations[station]['locationid'] + "\">" +
 				stations[station]['callsign'] + ": " +
-				stations[station]['locationname'] + "</a></strong><br />";
+				stations[station]['locationname'] + "</a></strong>;
 
 			stations[station]['offset'] = [0, -iconHomeSize/2];
 
 			var stationMark = 
 				L.marker([parseFloat(stations[station]['locationlat']),
 						  parseFloat(stations[station]['locationlon'])],
-						 {title: stations[station]['title'],
+						 {title: stations[station]['callsign'] + " / " + stations[station]['locationname'],
 						  icon: homeIcon}).addTo(map)
 			stationLayerObjs.push(stationMark);
 

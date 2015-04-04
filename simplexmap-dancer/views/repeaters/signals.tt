@@ -18,7 +18,7 @@
 				  <tr><th>Name</th> <th>Callsign</th><th>Latitude</th> <th>Longitude</th> <th>Signal Strength</th></tr>
 				  <% FOREACH item IN list %>
 				  <tr>
-					<td><% item.repeaternotes %>
+					<td><% item.repeatername %>
 					</td>
 					<td><% item.repeatercallsign %>
 					</td>

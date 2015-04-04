@@ -208,7 +208,7 @@ get '/repeaters/map' => sub {
       inner join locations on locationId = listeningStation
       inner join repeaters on repeaters.repeaterid = repeatersignals.repeaterid
            where repeaterStrength is not null and repeaterStrength > -1
-             and repeaterpublic = 'Y' or repeaterowner = ?");
+             and (repeaterpublic = 'Y' or repeaterowner = ?"));
 	warn(database()->errstr) if (!$listh);
 
 	# fetch all the simplex links

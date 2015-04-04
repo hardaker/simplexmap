@@ -124,7 +124,7 @@ get '/repeaters/signals' => sub {
 
 	my $listh = database()->prepare_cached(
     	 "select repeaters.repeaterid as repeaterid, repeaternotes, repeatercallsign, repeaterlat, repeaterlon,
-                 repeaterStrength, sendingStrength
+                 repeaterStrength, sendingStrength, repeatername
             from repeaters
        left join repeatersignals
               on repeaters.repeaterid = repeatersignals.repeaterid
@@ -200,7 +200,7 @@ get '/repeaters/map' => sub {
 	my $allstations = $stationsh->fetchall_hashref('locationid');
 	$allstations = to_json($allstations);
 
-	# fetch all the links
+	# fetch all the repeater links
 	my $listh = database()->prepare_cached(
     	 "select repeaters.repeaterid, listeningStation, repeaterStrength, sendingStrength,
                  locationlat, locationlon, repeaterlat, repeaterlon
@@ -211,7 +211,7 @@ get '/repeaters/map' => sub {
              and repeaterpublic = 'Y' or repeaterowner = ?");
 	warn(database()->errstr) if (!$listh);
 
-	# fetch all the links
+	# fetch all the simplex links
 	my $simph = database()->prepare_cached("select 
                                                    locheard.locationlat    as heardlat,
                                                    locheard.locationlon    as heardlon,

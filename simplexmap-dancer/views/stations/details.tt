@@ -13,6 +13,31 @@
 			  </table>
             </div>
         </div>
+
+		<div class="panel panel-default">
+		  <div class="panel-heading">Repeaters Heard</div>
+		  <div class="panel-body">
+			<table class="table " id="repeatersheard">
+			  <thead>
+				<th>Repeater Callsign</th><th>Name</th><th>Signal</th>
+			  </thead>
+			  <tbody>
+				<% FOREACH repeater IN repeaters %>
+				<tr>
+                  <td><% repeater.repeatercallsign %>
+                  </td>
+                  <td><% repeater.repeatername %>
+                  </td>
+                  <td><% repeater.repeaterStrength %>
+                  </td>
+				</tr>
+				<% END %>
+			  </tbody>
+			  <tfoot>
+			  </tfoot>
+			</table>
+		  </div>
+		</div>
     </div>
 </div>
 

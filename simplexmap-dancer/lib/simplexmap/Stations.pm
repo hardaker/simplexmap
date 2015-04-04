@@ -81,14 +81,25 @@ get '/stations/:num' => sub {
                                                and (locationprivacy = 'P'
                                                     or locationperson = ?)");
 	$listh->execute($num, session('user'));
-	my $repeater = $listh->fetchrow_hashref();
+	my $station = $listh->fetchrow_hashref();
 	$listh->finish;
 
-	if (!$repeater) {
-		return template 'error' => { error => "Unknown repeater" }
-	}
-   
-	template 'stations/details' => { location => $repeater };
+	my $repeatersh = database()->prepare_cached("select *, people.callsign as personcallsign from repeatersignals
+                                          inner join repeaters
+                                                  on repeaters.repeaterid = repeatersignals.repeaterid
+                                          inner join locations
+                                                  on listeningStation = locationid
+                                          inner join people
+                                                  on people.id = locations.locationperson
+                                               where listeningStation = ?
+                                                 and repeaterStrength > -1
+                                                 and (repeaterpublic = 'Y'
+                                                      or repeaterowner = ?)");
+	$repeatersh->execute($num, session('user'));
+	my $repeaters = $repeatersh->fetchall_arrayref({});
+	$repeatersh->finish;
+
+	template 'stations/details' => { location => $station, repeaters => $repeaters };
 };
 
 

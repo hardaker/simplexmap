@@ -44,11 +44,9 @@ post '/login' => sub {
 
 		my $salt = $row->{'salt'};
 		if (get_salted_password($salt, param('password')) ne $row->{'password'}) {
-			debug("here: " . param('password') . " ne $row->{'password'}");
 			return redirect '/login?failed=1';
 		}
 
-		debug($row);
 		# make sure they clicked on the link
 		if (length($row->{'validation'}) > 0) {
 			return template 'login' => {notvalidated => 1};

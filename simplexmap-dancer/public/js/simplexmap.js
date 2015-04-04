@@ -79,7 +79,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			stations[station]['title'] =
 				"<strong><a href=\"/stations/" + stations[station]['locationid'] + "\">" +
 				stations[station]['callsign'] + ": " +
-				stations[station]['locationname'] + "</a></strong>;
+				stations[station]['locationname'] + "</a></strong>";
 
 			stations[station]['offset'] = [0, -iconHomeSize/2];
 

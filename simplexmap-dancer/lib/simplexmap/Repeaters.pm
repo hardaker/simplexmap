@@ -54,6 +54,8 @@ post '/repeaters' => sub {
 
 	my $vals = $results->valid;
 
+	$vals->{'callsign'} = uc($vals->{'callsign'});
+
 	my $insh = database()->prepare_cached("
        insert into repeaters (repeaterowner, repeatername, repeatercallsign, repeaterlat, repeaterlon,
                               repeaternotes, repeaterpublic, repeaterfreq, repeateroffset,

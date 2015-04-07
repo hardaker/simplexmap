@@ -1,5 +1,27 @@
 WS6Z's Simplex Mapping System
 
+* Repeater and Simlpex Mapping Tool
+
+This software is designed to map repeater and simplex nets, allowing
+users to graphically repent on a map who can talk to who/what.  This
+may be highly useful for passing messages between stations.
+
+At the moment, only the 2 meter frequency is really represented.
+
+There is a public instantiation of the system available at:
+
+  http://map.ws6z.com/
+
+There, accounts can be created, repeaters can be listed, and signals
+logged.
+
+This version was completely rewritten from what is documented below
+and uses the leaflet mapping code to render the maps in a much more
+pleasant and interactive way.  The web interface also is significantly
+improved, graphically, via the use of twitter's bootstrap css/js.
+
+* EVERYTHING BELOW IS OUT OF DATE
+
 * Project Details
 
   http://simplexmap.hamtools.org/docs/

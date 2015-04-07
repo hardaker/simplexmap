@@ -17,7 +17,7 @@
           <div id="map" class="map" style="height: 600px;">
           </div>
 		  <br />
-		  <p><em>Click on an item to show signal paths to it.</em></p>
+		  <p><em>Click on an item to show signal paths to it.</em>, <font color="#c00000">Red Lines = Repeater signals</font>, <font color="#40ff00">Green Lines = Simplex signals</font></p>
         </div>
       </div>
 	</div>

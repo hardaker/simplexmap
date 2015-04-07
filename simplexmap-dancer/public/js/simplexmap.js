@@ -107,7 +107,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			var link = links[linkid];
 			var line = L.polyline([[parseFloat(link['repeaterlat']), parseFloat(link['repeaterlon'])],
 								   [parseFloat(link['locationlat']), parseFloat(link['locationlon'])]],
-								  { color: "#ff0000", weight: 2 });
+								  { color: "#c00000", weight: 2 });
 
 			
 			stations[link['listeningStation']]['lines'].push(line);
@@ -124,7 +124,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 			var simplex = simplexes[simplexid];
 			var line = L.polyline([[parseFloat(simplex['heardlat']), parseFloat(simplex['heardlon'])],
 								   [parseFloat(simplex['fromlat']), parseFloat(simplex['fromlon'])]],
-								  { color: "#80ff00", weight: 2 });
+								  { color: "#40ff00", weight: 2 });
 
 			
 			stations[simplex['heardstation']]['lines'].push(line);

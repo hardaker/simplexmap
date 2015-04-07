@@ -1,6 +1,6 @@
 WS6Z's Simplex Mapping System
 
-* Repeater and Simlpex Mapping Tool
+* Repeater and Simplex Mapping Tool
 
 This software is designed to map repeater and simplex nets, allowing
 users to graphically repent on a map who can talk to who/what.  This
@@ -8,7 +8,7 @@ may be highly useful for passing messages between stations.
 
 At the moment, only the 2 meter frequency is really represented.
 
-There is a public instantiation of the system available at:
+There is a public installation of the system available at:
 
   http://map.ws6z.com/
 

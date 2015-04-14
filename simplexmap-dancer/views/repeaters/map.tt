@@ -31,11 +31,13 @@
    var links = <% links %>;
    var simplexes = <% simplex %>;
    var symbols = <% symbols %>
+   var repeaterlinks = <% repeaterlinks %>
 
    var defaultLat = <% centeron.locationlat %>;
    var defaultLon = <% centeron.locationlon %>;
 
-   var simplexmap = createmap(defaultLat, defaultLon, repeaters, stations, links, simplexes, symbols);
+   var simplexmap = createmap(defaultLat, defaultLon, repeaters, stations,
+							  links, simplexes, repeaterlinks, symbols);
    $('#repeaterbut').on("click", simplexmap['toggleAllRepeaters']);
    $('#stationbut').on("click", simplexmap['toggleAllStations']);
    $('#hidebut').on("click", simplexmap['hideAllStations']);

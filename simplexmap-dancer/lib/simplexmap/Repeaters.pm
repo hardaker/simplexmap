@@ -221,6 +221,22 @@ get '/repeaters/map' => sub {
 	my $symbols = $symbolsh->fetchall_arrayref({});
 	$symbolsh->finish;
 
+	# fetch repeater link details
+	my $repeaterlinksh = database()->prepare_cached("select leftrep.repeaterid   as leftid,
+                                                            leftrep.repeaterlat  as leftlat,
+                                                            leftrep.repeaterlon  as leftlon,
+                                                            rightrep.repeaterid  as rightid,
+                                                            rightrep.repeaterlat as rightlat,
+                                                            rightrep.repeaterlon as rightlon
+                                                       from repeaterlinks
+                                                 inner join repeaters as leftrep
+                                                         on leftrep.repeaterid = repeaterlinks.fromid
+                                                 inner join repeaters as rightrep
+                                                         on rightrep.repeaterid = repeaterlinks.toid");
+	$repeaterlinksh->execute();
+	my $repeaterlinks = $repeaterlinksh->fetchall_arrayref({});
+	$repeaterlinksh->finish;
+	
 	# fetch all the simplex links
 	my $simph = database()->prepare_cached("select 
                                                    locheard.locationlat    as heardlat,
@@ -265,13 +281,15 @@ get '/repeaters/map' => sub {
 	$links = to_json($links);
 	$simplexes = to_json($simplexes);
 	$symbols = to_json($symbols);
+	$repeaterlinks = to_json($repeaterlinks);
 
-	template 'repeaters/map' => { repeaters => $allrepeaters,
-	                              stations 	=> $allstations,
-	                              symbols  	=> $symbols,
-	                              links    	=> $links,
-	                              simplex  	=> $simplexes,
-	                              centeron 	=> $station};
+	template 'repeaters/map' => { repeaters 	=> $allrepeaters,
+	                              stations 		=> $allstations,
+	                              symbols  		=> $symbols,
+	                              repeaterlinks	=> $repeaterlinks,
+	                              links    		=> $links,
+	                              simplex  		=> $simplexes,
+	                              centeron 		=> $station};
 };
 
 ######################################################################

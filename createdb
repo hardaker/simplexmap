@@ -126,7 +126,13 @@ $dbh->do("create table repeaters(
       repeaterpl          varchar(32),
       repeaterdcs         varchar(32),
       repeaterpublic      CHAR,
-  )");
+                                )");
+
+$dbh->do("create table repeaterlinks(
+                                     fromid   int,
+                                     to       int,
+                                     always   char default 'N'
+                                     )");
 
 # alter table repeaters add column repeatername        varchar(128);
 # alter table repeaters add column   repeaterfreq        varchar(128);

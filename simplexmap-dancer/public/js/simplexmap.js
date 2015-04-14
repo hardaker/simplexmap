@@ -1,4 +1,4 @@
-function createmap(lat, lon, repeaters, stations, links, simplexes, symbols) {
+function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlinks, symbols) {
 	var currentLine;
 	var self = {};
 
@@ -141,6 +141,31 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, symbols) {
 
 			stations[simplex['fromstation']]['lines'].push(line);
 			stations[simplex['fromstation']]['mark']['ws6z_lines'].push(line)
+		}
+	}
+
+	// add in any repeater links
+	for (repeaterlink in repeaterlinks) {
+		if (repeaterlinks.hasOwnProperty(repeaterlink)) {
+			var link = repeaterlinks[repeaterlink];
+
+			var options = { color: "#ffbb44", weight: 3, dashArray: "10, 10" };
+			if (repeaterlinks[repeaterlink]['always'] = 'N') {
+				options['dashArray'] = "5, 10";
+			}
+
+			var line = L.polyline([[parseFloat(link['leftlat']), parseFloat(link['leftlon'])],
+								   [parseFloat(link['rightlat']), parseFloat(link['rightlon'])]],
+								  options);
+			map.addLayer(line);
+			
+			console.log("adding repeater link");
+
+			// stations[link['heardstation']]['lines'].push(line);
+			// stations[link['heardstation']]['mark']['ws6z_lines'].push(line)
+
+			// stations[link['fromstation']]['lines'].push(line);
+			// stations[link['fromstation']]['mark']['ws6z_lines'].push(line)
 		}
 	}
 

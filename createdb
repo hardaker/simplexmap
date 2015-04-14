@@ -73,6 +73,15 @@ if ($opts{'c'}) {
       eventdescription          varchar(4096)
 )");
 
+$dbh->do("create table symbols
+(
+      symbolid            int(11) NOT NULL auto_increment primary key,
+      symbolname          varchar(64),
+      symboldescription   varchar(4096),
+      symboliconpath      varchar(256),
+      symboliconsize      int default 24
+)");
+
     $dbh->do("create table locations
 (
       locationid          int(11) NOT NULL auto_increment primary key,
@@ -87,8 +96,10 @@ if ($opts{'c'}) {
       locationaddress     varchar(4096),
       locationcity        varchar(4096),
       locationstate       varchar(4096),
-      locationzip         int
+      locationzip         int,
+      locationsymbol      int default 1
 )");
+
 # privacy values:
 #   M: mine only
 #   F: friends

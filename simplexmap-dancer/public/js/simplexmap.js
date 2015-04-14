@@ -1,4 +1,4 @@
-function createmap(lat, lon, repeaters, stations, links, simplexes) {
+function createmap(lat, lon, repeaters, stations, links, simplexes, symbols) {
 	var currentLine;
 	var self = {};
 
@@ -21,21 +21,28 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 	var iconHomeSize 	= 2 * iconBaseSize/3;
 	var iconRepeaterSize = iconBaseSize;
 
-	// create the icons
-	var homeIcon = L.icon({
-		iconUrl: '/icons/building-24@2x.png',
-		iconSize:   [iconHomeSize,   iconHomeSize],
-		iconAnchor: [iconHomeSize/2, iconHomeSize],
-		popupAnchor: [iconHomeSize/2, -100],
-	});
-
 	var repeaterIcon = L.icon({
 		iconUrl: '/icons/triangle-24@2x.png',
 		iconSize:   [iconRepeaterSize,   iconRepeaterSize],
 		iconAnchor: [iconRepeaterSize/2, iconRepeaterSize],
 		popupAnchor: [iconRepeaterSize/2, -100],
 	});
-	
+
+	var symbolInfo = [];
+	for (symbol in symbols) {
+		if (symbols.hasOwnProperty(symbol)) {
+
+			var icon = L.icon({
+					iconUrl: '/icons/building-24@2x.png',
+					iconSize:   [iconHomeSize,   iconHomeSize],
+					iconAnchor: [iconHomeSize/2, iconHomeSize],
+					popupAnchor: [iconHomeSize/2, -100],
+			});
+
+			symbolInfo[symbol] = icon;
+		}
+	}
+
 	// setup the repeater grouping
 	var repeaterLayerObjs = [];
 	var repeaterLines = [];
@@ -81,13 +88,15 @@ function createmap(lat, lon, repeaters, stations, links, simplexes) {
 				stations[station]['callsign'] + ": " +
 				stations[station]['locationname'] + "</a></strong>";
 
+			var iconInfo = symbolInfo[stations[station]['symbolid'] - 1];
+
 			stations[station]['offset'] = [0, -iconHomeSize/2];
 
 			var stationMark = 
 				L.marker([parseFloat(stations[station]['locationlat']),
 						  parseFloat(stations[station]['locationlon'])],
 						 {title: stations[station]['callsign'] + " / " + stations[station]['locationname'],
-						  icon: homeIcon}).addTo(map)
+						  icon: iconInfo}).addTo(map)
 			stationLayerObjs.push(stationMark);
 
 			stations[station]['lines'] = [];

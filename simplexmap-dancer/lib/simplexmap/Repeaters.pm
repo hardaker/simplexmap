@@ -197,7 +197,9 @@ get '/repeaters/map' => sub {
 	my $stationsh = database()->prepare_cached("select *, locationlat as lat, locationlon as lon
                                                   from locations
                                             inner join people
-                                                    on locations.locationperson = people.id");
+                                                    on locations.locationperson = people.id
+                                            inner join symbols
+                                                    on locationsymbol = symbolid");
 	$stationsh->execute();
 	my $allstations = $stationsh->fetchall_hashref('locationid');
 	$allstations = to_json($allstations);
@@ -212,6 +214,12 @@ get '/repeaters/map' => sub {
            where repeaterStrength is not null and repeaterStrength > -1
              and (repeaterpublic = 'Y' or repeaterowner = ?)");
 	warn(database()->errstr) if (!$listh);
+
+	# fetch symbol details
+	my $symbolsh = database()->prepare_cached("select * from symbols");
+	$symbolsh->execute();
+	my $symbols = $symbolsh->fetchall_arrayref({});
+	$symbolsh->finish;
 
 	# fetch all the simplex links
 	my $simph = database()->prepare_cached("select 
@@ -256,12 +264,14 @@ get '/repeaters/map' => sub {
 
 	$links = to_json($links);
 	$simplexes = to_json($simplexes);
+	$symbols = to_json($symbols);
 
 	template 'repeaters/map' => { repeaters => $allrepeaters,
-	                              stations => $allstations,
-	                              links => $links,
-	                              simplex => $simplexes,
-	                              centeron => $station};
+	                              stations 	=> $allstations,
+	                              symbols  	=> $symbols,
+	                              links    	=> $links,
+	                              simplex  	=> $simplexes,
+	                              centeron 	=> $station};
 };
 
 ######################################################################

@@ -150,7 +150,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlink
 			var link = repeaterlinks[repeaterlink];
 
 			var options = { color: "#bb8800", weight: 3, dashArray: "10, 10" };
-			if (repeaterlinks[repeaterlink]['always'] = 'N') {
+			if (repeaterlinks[repeaterlink]['always'] === 'N') {
 				options['dashArray'] = "5, 10";
 			}
 

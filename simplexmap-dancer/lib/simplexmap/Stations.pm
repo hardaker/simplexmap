@@ -67,6 +67,8 @@ post '/stations' => sub {
 	my $symbolsh = database()->prepare_cached("select * from symbols where symbolid = ?");
 	$symbolsh->execute($vals->{'stationtype'});
 	my $row = $symbolsh->fetchrow_arrayref();
+	$symbolsh->finish();
+
 	if (!$row) {
 		# no symbol found
 		return template 'error' => { error => "Illegal station type" };

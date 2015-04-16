@@ -23,20 +23,27 @@ get '/stations' => sub {
 };
 
 get '/stations/new' => sub {
-	template 'stations/new';
+
+	my $symbolsh = database()->prepare_cached("select * from symbols");
+	$symbolsh->execute();
+	my $symbols = $symbolsh->fetchall_arrayref({});
+	$symbolsh->finish;
+	
+	template 'stations/new' => { symbols => $symbols };
 };
 
 post '/stations' => sub {
 	debug("-------------- here top");
 
 	my $results = 
-	  dfv({ required => ['latitude', 'longitude', 'name', 'visibility'],
+	  dfv({ required => ['latitude', 'longitude', 'name', 'visibility', 'stationtype'],
 	        optional => ['antenna', 'transmitter'],
 	        filters => 'trim',
 	        constraint_methods => 
 	        {
 	         latitude       => qr/^[-+]?[0-9]+\.[0-9]+$/,
 	         longitude      => qr/^[-+]?[0-9]+\.[0-9]+$/,
+	         stationtype    => qr/^[0-9]+$/,
 	         visibility     => qr/^(private|friends|friendsandgroups|public)$/,
 	        }
 	      });
@@ -57,12 +64,20 @@ post '/stations' => sub {
 	              );
 	$vals->{'visibility'} = $privmap{$vals->{'visibility'}};
 
+	my $symbolsh = database()->prepare_cached("select * from symbols where symbolid = ?");
+	$symbolsh->execute($vals->{'stationtype'});
+	my $row = $symbolsh->fetchrow_arrayref();
+	if (!$row) {
+		# no symbol found
+		return template 'error' => { error => "Illegal station type" };
+	}
+
 	my $insh = database()->prepare_cached("
        insert into locations (locationperson, locationname, locationlat, locationlon,
-                              locationtransmiter, locationantenna, locationprivacy)
-                      values (?, ?, ?, ?, ?, ?, ?)");
+                              locationtransmiter, locationantenna, locationprivacy, locationsymbol)
+                      values (?, ?, ?, ?, ?, ?, ?, ?)");
 	$insh->execute(session('user'), $vals->{'name'}, $vals->{'latitude'}, $vals->{'longitude'},
-	               $vals->{'transmitter'}, $vals->{'antenna'}, $vals->{'visibility'});
+	               $vals->{'transmitter'}, $vals->{'antenna'}, $vals->{'visibility'}, $vals->{'stationtype'} || 1);
 
 	redirect '/stations';
 };

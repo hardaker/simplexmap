@@ -130,7 +130,7 @@ $dbh->do("create table repeaters(
 
 $dbh->do("create table repeaterlinks(
                                      fromid   int,
-                                     to       int,
+                                     toid     int,
                                      always   char default 'N'
                                      )");
 

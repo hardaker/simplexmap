@@ -14,6 +14,18 @@
 		  </div>
 
 		  <div class="input-group">
+            <span class="input-group-addon">Station Type</span>
+	        <% messages.stationtype %>
+			<select name="stationtype">
+			  <% foreach symbol in symbols %>
+			  <option value="<% symbol.symbolid %>"><% symbol.symboldescription %></option>
+			  <% end %>
+			</select>
+            </span>
+		  </div>
+
+
+		  <div class="input-group">
             <span class="input-group-addon">Visibility</span>
 			<select name="visibility">
 			  <option value="private">Private</option>

@@ -1,8 +1,25 @@
 <div class="header">
-    <h1>Signal Mapping System</h1>
-	<ul>
-	  <li><a href="/stations">Edit Your Stations</a></li>
-	  <li><a href="/repeaters/signals">Repeater Signals</a></li>
-	  <li><a href="/simplex">Simplex Net Mapping</a></li>
-	</ul>
+  <h1>WS6Z's Signal Mapping System</h1>
+  <div class="panel panel-default">
+	<div class="panel-heading"><strong>Getting Started</strong></div>
+	<div class="panel-body">
+      <p>To get up and running you should do the following:</p>
+	  <ol>
+		<li>Create a <a href="/stations">listening station</a> (e.g. your home base station)</li>
+		<li>Report signals for <a href="/repeaters/signalstart">Repeaters You Can Hear</a></li>
+		<li>Enter any <a href="/simplex">simplex stations you can hear</a></li>
+		<li>See your results <a href="/repeaters/map">on the map!</a></li>
+	  </ul>
+	</div>
+  </div>
+  <div class="panel panel-default">
+	<div class="panel-heading"><strong>Advanced Options</strong></div>
+	<div class="panel-body">
+      <p>In addition, you can also perform the following tasks:</p>
+	  <ul>
+		<li>List the <a href="/repeaters">existing repeaters</a>.</li>
+		<li>Enter details about a <a href="/repeaters/new">new repeater</a></li>
+	  </ul>
+	</div>
+  </div>
 </div>

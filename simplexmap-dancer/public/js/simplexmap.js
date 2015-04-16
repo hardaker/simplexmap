@@ -31,12 +31,14 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlink
 	var symbolInfo = [];
 	for (symbol in symbols) {
 		if (symbols.hasOwnProperty(symbol)) {
+			var sym = symbols[symbol];
+			var size = sym['symboliconsize'];
 
 			var icon = L.icon({
-					iconUrl: '/icons/building-24@2x.png',
-					iconSize:   [iconHomeSize,   iconHomeSize],
-					iconAnchor: [iconHomeSize/2, iconHomeSize],
-					popupAnchor: [iconHomeSize/2, -100],
+					iconUrl: '/icons/' + sym['symbolicon'],
+					iconSize:   [size,   size],
+					iconAnchor: [size/2, size],
+					popupAnchor: [size/2, -100],
 			});
 
 			symbolInfo[symbol] = icon;

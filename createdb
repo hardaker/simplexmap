@@ -78,7 +78,7 @@ $dbh->do("create table symbols
       symbolid            int(11) NOT NULL auto_increment primary key,
       symbolname          varchar(64),
       symboldescription   varchar(4096),
-      symboliconpath      varchar(256),
+      symbolicon          varchar(256),
       symboliconsize      int default 24
 )");
 

@@ -81,7 +81,7 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlink
 	repeaterGroup.addTo(map);
 
 	// set up the station grouping
-	var stationLayerObjs = [];
+	var stationLayerObjs = {};
 	var stationLines = [];
 	for (station in stations) {
 		if (stations.hasOwnProperty(station)) {
@@ -99,7 +99,12 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlink
 						  parseFloat(stations[station]['locationlon'])],
 						 {title: stations[station]['callsign'] + " / " + stations[station]['locationname'],
 						  icon: iconInfo}).addTo(map)
-			stationLayerObjs.push(stationMark);
+
+			if (!stationLayerObjs[stations[station]['symbolname']]) {
+				stationLayerObjs[stations[station]['symbolname']] = [];
+			}
+				
+			stationLayerObjs[stations[station]['symbolname']].push(stationMark);
 
 			stations[station]['lines'] = [];
 			stations[station]['mark'] = stationMark;
@@ -109,8 +114,15 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlink
 			stationMark.on('click', onMarkerClick);
 		}
 	}
-	var stationGroup = L.layerGroup(stationLayerObjs);
-	stationGroup.addTo(map);
+
+	var layerList = {};
+
+	for (obj in stationLayerObjs) {
+		if (stationLayerObjs.hasOwnProperty(obj)) {
+			layerList[obj] = L.layerGroup(stationLayerObjs[obj]);
+			layerList[obj].addTo(map);
+		}
+	}
 
 	// add the links between the stations and the repeaters
 	for (linkid in links) {
@@ -171,10 +183,8 @@ function createmap(lat, lon, repeaters, stations, links, simplexes, repeaterlink
 		}
 	}
 
-
-	L.control.layers(null,  { 'Repeaters': repeaterGroup,
-							  'Stations':  stationGroup} ).addTo(map);
-
+	layerList['Repeaters'] = repeaterGroup;
+	L.control.layers(null,  layerList ).addTo(map);
 
 	function toggleLines(lines, shown) {
 		var showpopup = true;

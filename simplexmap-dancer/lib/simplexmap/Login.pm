@@ -9,6 +9,9 @@ use Mail::Sender;
 use Crypt::OpenSSL::Random;
 use Digest::SHA qw(sha256_hex);
 
+use simplexmap::Constants;
+use strict;
+
 hook 'before' => sub {
 	# if we're not a user and we're not a sensor, force the login page
 	if (! session('callsign') && 
@@ -74,7 +77,7 @@ post '/signup' => sub {
 	        {
 	         firstname      => qr/^[a-zA-Z]+$/,
 	         lastname       => qr/^[a-zA-Z]+$/,
-	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign       => $callsign_regex,
 	         email  		=> email(),
 	         password       => FV_min_length(6),
 	        }

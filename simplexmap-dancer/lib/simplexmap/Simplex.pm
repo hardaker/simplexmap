@@ -7,6 +7,9 @@ use Dancer::Plugin::Database;
 use Dancer::Plugin::DataFormValidator;
 use Data::FormValidator::Constraints qw(:closures);
 
+use simplexmap::Constants;
+use strict;
+
 ######################################################################
 # New simplexes
 
@@ -63,11 +66,11 @@ post '/simplex' => sub {
 	        optional => [qw(signal2 callsign2 signal3 callsign3 signal4 callsign4 signal5 callsign5)],
 	        constraint_methods => 
 	        {
-	         callsign1       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         callsign2       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         callsign3       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         callsign4       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
-	         callsign5       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign1       => $callsign_regex,
+	         callsign2       => $callsign_regex,
+	         callsign3       => $callsign_regex,
+	         callsign4       => $callsign_regex,
+	         callsign5       => $callsign_regex,
 	         signal1         => qr/^-?[0-9]+$/,
 	         signal2         => qr/^-?[0-9]+$/,
 	         signal3         => qr/^-?[0-9]+$/,

@@ -7,6 +7,10 @@ use Dancer::Plugin::Database;
 use Dancer::Plugin::DataFormValidator;
 use Data::FormValidator::Constraints qw(:closures);
 
+use simplexmap::Constants;
+
+use strict;
+
 ######################################################################
 # New repeaters
 
@@ -37,7 +41,7 @@ post '/repeaters' => sub {
 	        {
 	         latitude       => qr/^[-+]?[0-9]+\.[0-9]+$/,
 	         longitude      => qr/^[-+]?[0-9]+\.[0-9]+$/,
-	         callsign       => qr/^[a-zA-Z]{1,2}[0-9][a-zA-Z]{1,3}$/,
+	         callsign       => $callsign_regex,
 	         visibility     => qr/^(private|public)$/,
 	         frequency      => qr/^[0-9]+\.[0-9]+\s*[a-zA-Z]*$/,
 	         offset         => qr/^(\+|-)$/,

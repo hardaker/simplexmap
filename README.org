@@ -1,5 +1,25 @@
 WS6Z's Simplex Mapping System
 
+* OBSOLETE repository
+
+I originally wrote the simplex mapping system over a decade ago.
+Using Perl (don't hate me).  Since then I've taken all my lessons
+learned and designed a completely new, much much better system over
+at:
+
+https://simplex.hamtools.org
+
+If you have a group that holds simplex nets and wants to log
+connectivity, this is the new site you want.  The code is not yet
+released, but is on my todo list to make happen.  Mail me if you want
+an account for you and your group on the new system though -- I'll
+need the name of the group and your callsign to get started with an group admin account
+for you.
+
+* EVERYTHING BELOW IS OUT OF DATE
+
+
+
 * Repeater and Simplex Mapping Tool
 
 This software is designed to map repeater and simplex nets, allowing
@@ -19,8 +39,6 @@ This version was completely rewritten from what is documented below
 and uses the leaflet mapping code to render the maps in a much more
 pleasant and interactive way.  The web interface also is significantly
 improved, graphically, via the use of twitter's bootstrap css/js.
-
-* EVERYTHING BELOW IS OUT OF DATE
 
 * Project Details
 
